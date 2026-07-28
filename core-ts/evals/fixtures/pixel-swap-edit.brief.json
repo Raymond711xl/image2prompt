@@ -1,0 +1,31 @@
+{
+  "schema_version": "0.1",
+  "purpose": "poster",
+  "aspect_ratio": "3:4",
+  "subject": "像素风血糖仪剪影",
+  "subject_detail": "圆角矩形机身，正面一块小屏幕，纯黑平涂",
+  "copy_safe_area": "none",
+  "render_text_in_image": false,
+  "must_keep": [],
+  "must_avoid": [],
+  "refs": {},
+  "edit": {
+    "scope_anchor": "画面正中那一整块由黑色方块堆叠而成的像素图形",
+    "protect": [
+      { "element": "顶部满宽大写标题", "original_content": "米杏色 HAPPY" },
+      { "element": "底部满宽大写标题", "original_content": "米杏色 YEAR" },
+      { "element": "左右两侧沿边竖排小字", "original_content": "米杏色 HAPPY 与 HORSE" },
+      { "element": "中下部居中的年份、中文副标题与英文正文", "original_content": "黑色 2026、马年大吉及两行英文" },
+      { "element": "画面底色", "original_content": "正红色平涂" }
+    ],
+    "replace": [
+      {
+        "target": "画面正中的黑色像素图形",
+        "new_content": "同样像素网格尺寸的黑色像素风血糖仪剪影，圆角矩形机身正面带一块小屏幕"
+      }
+    ],
+    "merge_requirements": "新图形沿用原图完全相同的像素块尺寸与对齐网格，纯黑平涂无渐变，边缘保持 90 度阶梯锯齿，占位与原图形大致相当"
+  },
+  "variants": 1,
+  "notes": "测试边界控制四纪律：只换中央图形，顶部/底部大字、两侧竖排小字、底色都必须锁住不动。"
+}

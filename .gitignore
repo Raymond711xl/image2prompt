@@ -1,2 +1,11 @@
 .DS_Store
 *.skill
+
+# Swift / SwiftPM
+app/.build/
+app/.swiftpm/
+*.app
+
+# TypeScript / Node
+core-ts/node_modules/
+core-ts/dist/

@@ -1,0 +1,26 @@
+{
+  "schema_version": "0.1",
+  "purpose": "wechat_cover",
+  "aspect_ratio": "16:9",
+  "subject": "一台白色家用血糖仪",
+  "subject_detail": "圆角矩形机身，正面有一块深色小屏幕，机身素净无任何标识，斜 45 度立于画面中",
+  "action": null,
+  "scene": null,
+  "copy": {
+    "title": "血糖管理新方式",
+    "subtitle": null,
+    "body": null
+  },
+  "copy_safe_area": "bottom_third",
+  "render_text_in_image": false,
+  "must_keep": [],
+  "must_avoid": ["杂物", "真人出镜"],
+  "refs": {
+    "style": "evals/fixtures/red-pixel-newyear-poster.stylespec.json",
+    "composition": null,
+    "subject": null
+  },
+  "quality_words": ["商业广告级画质"],
+  "variants": 1,
+  "notes": "跨主体测试：把新年海报的风格 DNA 套到完全无关的医疗器械上，验证风格能迁移且不带出原图内容。"
+}

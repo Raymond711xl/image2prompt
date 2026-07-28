@@ -1,0 +1,127 @@
+{
+  "schema_version": "0.1",
+  "source": {
+    "path": "/Users/raymond7/Desktop/AD-广告方案/项目完成/京东健康/使用图片/【审美分享】红色系海报真太有冲击力了🔥_3_Peet 的设计日常_来自小红书网页版.jpg",
+    "url": null,
+    "analyzed_at": "2026-07-28T13:00:00+08:00",
+    "analyzer": "claude-opus-5 / Claude Code native vision（色板由 ffmpeg 降采样后实测取色）",
+    "temporary": false
+  },
+  "ad_type": "mood_poster",
+  "medium": "typography_poster",
+  "medium_detail": "平面海报设计：像素图形 + 超大字重排版",
+  "style_family": [
+    {
+      "name": "瑞士国际主义排版",
+      "name_en": "Swiss International Typographic Style",
+      "confidence": 0.7,
+      "evidence": "超大号无衬线大写字母横贯顶部与底部、左右满宽出血无外边距；严格的居中轴线与贴边对齐；纯扁平色块无任何装饰",
+      "role": "primary"
+    },
+    {
+      "name": "像素／8-bit 图形",
+      "name_en": "pixel art / 8-bit graphics",
+      "confidence": 0.9,
+      "evidence": "中央图形完全由统一尺寸的正方形色块阶梯堆叠构成，轮廓呈 90 度锯齿状，无任何曲线或反锯齿",
+      "role": "borrowed"
+    }
+  ],
+  "content": {
+    "subject": "由黑色方形像素块拼成的奔马剪影，前蹄扬起、朝向画面右侧，位于画面中上部",
+    "scene": "无场景，纯平涂正红色背景",
+    "brand_marks": [],
+    "on_image_text": [
+      { "text": "HAPPY", "position": "画面顶部满宽", "role": "title" },
+      { "text": "NEW", "position": "画面中部，压在图形之上", "role": "title" },
+      { "text": "YEAR", "position": "画面底部满宽", "role": "title" },
+      { "text": "HAPPY", "position": "画面左下角，竖排", "role": "tag" },
+      { "text": "HORSE", "position": "画面右下角，竖排", "role": "tag" },
+      { "text": "· 2026 ·", "position": "画面下部居中", "role": "subtitle" },
+      { "text": "<马年大吉>", "position": "2026 下方居中", "role": "subtitle" },
+      { "text": "WISHING YOU A JOYFUL AND SPIRITED YEAR OF THE HORSE! MAY ITS ENERGY AND STRENGTH CARRY YOU FORWARD TO SUCCESS, PROSPERITY, AND NEW VICTORIES.", "position": "中文副标题下方居中，两行", "role": "body" }
+    ],
+    "keywords": ["奔马", "马年", "horse", "生肖", "2026", "马年大吉", "新年", "春节"]
+  },
+  "composition": {
+    "shot": "medium",
+    "angle": "eye_level",
+    "aspect_ratio": "3:4",
+    "subject_position": "center",
+    "subject_coverage": 0.28,
+    "negative_space": {
+      "region": "middle_band",
+      "ratio": 0.2,
+      "note": "主图形与底部大字之间一整条纯底色横带，无任何元素，可直接排文案"
+    },
+    "grid": "四边贴边满宽单栏 + 居中对称轴",
+    "density": "medium",
+    "bleed": true,
+    "layers": 2,
+    "symmetry": "symmetric",
+    "visual_flow": "顶部大字入画 → 沿中央主图形下行 → 落到中下部小字组 → 底部大字收尾"
+  },
+  "palette": [
+    { "hex": "#FF2424", "ratio": 0.74, "role": "base", "name_cn": "高饱和正红" },
+    { "hex": "#FED4AB", "ratio": 0.12, "role": "secondary", "name_cn": "米杏色" },
+    { "hex": "#010101", "ratio": 0.09, "role": "accent", "name_cn": "纯黑" }
+  ],
+  "color": {
+    "saturation": "high",
+    "temperature": "warm",
+    "contrast": "extreme",
+    "harmony": "analogous",
+    "brightness_key": "mid_key"
+  },
+  "lighting": {
+    "direction": "ambient",
+    "quality": "soft",
+    "contrast": "flat",
+    "sources": [],
+    "time_of_day": null,
+    "note": "纯平面设计，无光影模拟、无投影、无高光"
+  },
+  "material": {
+    "surfaces": [
+      { "where": "整幅画面", "finish": "matte", "detail": "纯平涂，无渐变、无肌理、无反锯齿" }
+    ],
+    "texture_overlay": ["none"]
+  },
+  "form_language": {
+    "geometry": "geometric_hard",
+    "edge": "straight",
+    "corner_radius_note": "无圆角，全部为 90 度直角方块，轮廓呈阶梯状锯齿",
+    "stroke_weight": "ultra_bold",
+    "repetition": "主图形由统一尺寸的正方形像素块阶梯式堆叠构成，像素网格尺寸全画面一致",
+    "gap_rule": "像素块之间无间隙、直接相接；文字左右贴边出血，两侧无外边距"
+  },
+  "typography": {
+    "present": true,
+    "typeface_class": "grotesque_sans",
+    "weight_contrast": "extreme",
+    "size_hierarchy": [
+      "超大号大写标题，单字高约占画面高度十分之一",
+      "中号中文副标题",
+      "小号年份数字",
+      "极小号英文正文"
+    ],
+    "alignment": "justified",
+    "case": "upper",
+    "safe_area": "画面中部横向带状区域",
+    "note": "标题字距约为字宽的二十分之一，极紧；顶部与底部大字满宽出血；左右两侧各有一列竖排极小字号文字沿边排列"
+  },
+  "mood": ["强烈冲击", "复古电子游戏感", "热烈直接"],
+  "use_cases": ["poster", "xhs_cover", "social_card"],
+  "style_dna": "高饱和正红满版底色，全画面仅三色：正红为底约占七成，米杏色与纯黑构成全部图形与文字；所有形体由统一尺寸的正方形像素块阶梯堆叠而成，90 度直角、锯齿轮廓、无圆角无渐变无反锯齿；超粗中性无衬线大写字母横贯画面顶部与底部，字距极紧、左右满宽出血、两侧无外边距；左右两侧各有一列沿边竖排的极小字号文字；中下部保留一整片干净底色供短文案居中排布；纯平涂，无光影、无投影、无肌理；字重对比极端，超大标题与极小正文并置；整体强烈、直接、复古电子游戏质感",
+  "style_dna_en": "Full-bleed high-saturation vermilion ground; strictly three colours — vermilion at roughly 70 percent, warm cream and pure black carrying every form and letter; all shapes built from uniform square pixel blocks in stepped stacks, 90-degree corners, jagged silhouettes, no rounding, no gradients, no anti-aliasing; ultra-bold grotesque uppercase lettering spans the top and bottom edges at full width with extremely tight tracking and zero side margin; a column of minute vertical type runs along each side edge; a clean flat band in the lower-middle holds short centred copy; completely flat with no lighting, shadow or texture; extreme weight contrast between oversized display type and tiny body copy; bold, direct, retro arcade feel",
+  "content_leakage": [],
+  "confidence": {
+    "overall": 0.82,
+    "uncertain_fields": [
+      "composition.shot",
+      "composition.angle",
+      "lighting",
+      "composition.negative_space.ratio"
+    ]
+  },
+  "notes": "shot / angle / lighting 三组字段对纯平面设计不适用，此处填了最接近的枚举值并标进 uncertain_fields。schema v0.2 应允许 not_applicable。"
+}

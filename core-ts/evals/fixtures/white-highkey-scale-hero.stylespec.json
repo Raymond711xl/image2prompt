@@ -1,0 +1,115 @@
+{
+  "schema_version": "0.1",
+  "source": {
+    "path": "/Users/raymond7/Desktop/AD-广告方案/项目完成/京东健康/使用图片/Nothing CMF 体重秤_1_西米鱼_来自小红书网页版.jpg",
+    "url": null,
+    "analyzed_at": "2026-07-28T13:12:00+08:00",
+    "analyzer": "claude-opus-5 / Claude Code native vision（色板由 ffmpeg 降采样后实测取色）",
+    "temporary": false
+  },
+  "ad_type": "hero_shot",
+  "medium": "3d_render",
+  "medium_detail": "产品级 CGI 渲染，接近影棚摄影的干净布光",
+  "style_family": [
+    {
+      "name": "极简留白",
+      "name_en": "minimalist, generous negative space",
+      "confidence": 0.9,
+      "evidence": "单一主体居中，四周大面积近白空场，无任何环境元素、道具或背景层次",
+      "role": "primary"
+    },
+    {
+      "name": "C4D 商业渲染",
+      "name_en": "C4D style commercial render",
+      "confidence": 0.65,
+      "evidence": "表面过渡完美无瑕、落影为均匀柔和的渐变、无环境反射与镜头畸变，更像渲染而非实拍",
+      "role": "borrowed"
+    }
+  ],
+  "content": {
+    "subject": "一台白色方形圆角智能体重秤，正俯视，表面点阵 LED 显示数字，下方有一条薄荷绿条形按键",
+    "scene": "无场景，近白色纯色空场，主体下方一圈极淡的柔和落影",
+    "brand_marks": [],
+    "on_image_text": [
+      { "text": "56.80", "position": "主体上部居中，点阵 LED 显示", "role": "other" },
+      { "text": "来 自 西 米 鱼", "position": "画面底部居中，字距极宽", "role": "other" }
+    ],
+    "keywords": ["体重秤", "智能秤", "点阵显示", "薄荷绿按键", "56.80", "来自西米鱼"]
+  },
+  "composition": {
+    "shot": "medium",
+    "angle": "top_down",
+    "aspect_ratio": "3:4",
+    "subject_position": "center",
+    "subject_coverage": 0.16,
+    "negative_space": {
+      "region": "surrounding",
+      "ratio": 0.8,
+      "note": "主体四周全为空场，上下留白略多于左右"
+    },
+    "grid": "居中单主体，四周留白宽度大致均等",
+    "density": "sparse",
+    "bleed": false,
+    "layers": 2,
+    "symmetry": "symmetric",
+    "visual_flow": "视线直接落在居中主体，再向下扫到底部一行小字"
+  },
+  "palette": [
+    { "hex": "#FBFBFB", "ratio": 0.9, "role": "base", "name_cn": "近白" },
+    { "hex": "#ECECEC", "ratio": 0.08, "role": "secondary", "name_cn": "极浅灰阶阴影" },
+    { "hex": "#C2D7CE", "ratio": 0.004, "role": "accent", "name_cn": "低饱和薄荷绿" }
+  ],
+  "color": {
+    "saturation": "desaturated",
+    "temperature": "neutral",
+    "contrast": "low",
+    "harmony": "monochrome",
+    "brightness_key": "high_key"
+  },
+  "lighting": {
+    "direction": "top",
+    "quality": "soft",
+    "contrast": "low",
+    "sources": ["大面积柔光箱顶部漫射光"],
+    "time_of_day": null,
+    "note": "主体下方一圈极淡接触落影，无硬边阴影、无镜面高光"
+  },
+  "material": {
+    "surfaces": [
+      { "where": "主体外壳", "finish": "matte", "detail": "细腻哑光塑料，边缘只有微弱高光过渡" },
+      { "where": "小面积点缀色块", "finish": "rubber", "detail": "哑光软胶" }
+    ],
+    "texture_overlay": ["none"]
+  },
+  "form_language": {
+    "geometry": "geometric_rounded",
+    "edge": "large_radius_rounded",
+    "corner_radius_note": "方形轮廓配超大半径圆角，圆角半径约为边长的四分之一，饱满但硬朗",
+    "stroke_weight": "none",
+    "repetition": "单一体块，无重复构成",
+    "gap_rule": "主体四周留白宽度大致均等，约为主体宽度的一半"
+  },
+  "typography": {
+    "present": true,
+    "typeface_class": "grotesque_sans",
+    "weight_contrast": "low",
+    "size_hierarchy": ["主体表面的点阵数字", "画面底部极小号文字"],
+    "alignment": "centered",
+    "case": "none",
+    "safe_area": "主体上方与下方的空场",
+    "note": "底部一行字距极宽的极小号中文，除此之外画面无任何排版元素"
+  },
+  "mood": ["安静克制", "干净通透", "高级极简"],
+  "use_cases": ["web_hero", "poster", "ppt", "social_card"],
+  "style_dna": "近乎全白的高调画面：背景与主体同处极浅明度区间，仅靠一层极淡的灰阶落影把主体从底色中分离；整体低饱和到近乎无彩，唯一有彩的是一小块低饱和薄荷绿点缀；单一主体居中，四周留白宽度大致均等、合计约占画面八成；方形轮廓配超大半径圆角，圆角半径约为边长的四分之一，饱满但硬朗；表面为细腻哑光材质，边缘只有微弱的高光过渡，无镜面反射、无硬边阴影；大面积柔光箱顶部漫射光，光比极低；排版极克制，仅在画面底部保留一行字距极宽的极小号文字；整体安静、通透、克制的高级感",
+  "style_dna_en": "Near-white high-key field: ground and subject sit in the same very light value range, separated only by a faint grey contact shadow; almost achromatic overall, with a single small patch of muted mint as the only chromatic accent; one centred subject with roughly equal margins on all sides, negative space totalling about 80 percent of the frame; squared silhouette with an oversized corner radius roughly a quarter of the edge length, full-bodied yet crisp; fine matte surfaces with only a soft highlight roll-off at the edges, no specular reflection and no hard-edged shadow; broad soft-box overhead diffusion at a very low lighting ratio; extremely restrained typography, just one line of widely tracked minute type along the bottom; quiet, airy, understated premium feel",
+  "content_leakage": [],
+  "confidence": {
+    "overall": 0.8,
+    "uncertain_fields": [
+      "medium",
+      "material.surfaces"
+    ]
+  },
+  "notes": "medium 判为 3d_render 但不排除是打光极干净的实拍：表面过渡与落影都过于完美，倾向渲染。这张图专门用来压非平面分支——光影描述会被正常编译出来。"
+}

@@ -1,0 +1,89 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`编译产物快照 > 局部编辑：只换中央像素图形 1`] = `
+{
+  "aspect_ratio": "3:4",
+  "img2img_edit": "仅编辑画面正中那一整块由黑色方块堆叠而成的像素图形，此范围以外的画面保持与原图完全一致。以下元素保持与原图完全一致：顶部满宽大写标题（原为米杏色 HAPPY）、底部满宽大写标题（原为米杏色 YEAR）、左右两侧沿边竖排小字（原为米杏色 HAPPY 与 HORSE）、中下部居中的年份、中文副标题与英文正文（原为黑色 2026、马年大吉及两行英文）、画面底色（原为正红色平涂）。在上述范围内，将画面正中的黑色像素图形替换为同样像素网格尺寸的黑色像素风血糖仪剪影，圆角矩形机身正面带一块小屏幕。只替换以上点名的元素，不新增任何原图中不存在的物体，不删除未点名的元素。新图形沿用原图完全相同的像素块尺寸与对齐网格，纯黑平涂无渐变，边缘保持 90 度阶梯锯齿，占位与原图形大致相当。",
+  "img2img_style_ref": "上传参考图，仅作风格参考，提取其风格语言：严格几何形态，平直边缘、锐利转角，无圆角，全部为 90 度直角方块，轮廓呈阶梯状锯齿，像素块之间无间隙、直接相接；文字左右贴边出血，两侧无外边距，主图形由统一尺寸的正方形像素块阶梯式堆叠构成，像素网格尺寸全画面一致；整幅画面呈哑光质感（纯平涂，无渐变、无肌理、无反锯齿）；高饱和，暖色调，极致高对比，中间调，风格流派 Swiss International Typographic Style + pixel art / 8-bit graphics，画面内容改为像素风血糖仪剪影，圆角矩形机身，正面一块小屏幕，纯黑平涂，按新主体重新构图，参考图的具体物体、场景和文字不进入生成结果（英文风格参考：Full-bleed high-saturation vermilion ground; strictly three colours — vermilion at roughly 70 percent, warm cream and pure black carrying every form and letter; all shapes built from uniform square pixel blocks in stepped stacks, 90-degree corners, jagged silhouettes, no rounding, no gradients, no anti-aliasing; ultra-bold grotesque uppercase lettering spans the top and bottom edges at full width with extremely tight tracking and zero side margin; a column of minute vertical type runs along each side edge; a clean flat band in the lower-middle holds short centred copy; completely flat with no lighting, shadow or texture; extreme weight contrast between oversized display type and tiny body copy; bold, direct, retro arcade feel）",
+  "model": "gpt-image",
+  "notes": [],
+  "parts": {
+    "edit": {
+      "noAddNoRemove": "只替换以上点名的元素，不新增任何原图中不存在的物体，不删除未点名的元素",
+      "protect": "以下元素保持与原图完全一致：顶部满宽大写标题（原为米杏色 HAPPY）、底部满宽大写标题（原为米杏色 YEAR）、左右两侧沿边竖排小字（原为米杏色 HAPPY 与 HORSE）、中下部居中的年份、中文副标题与英文正文（原为黑色 2026、马年大吉及两行英文）、画面底色（原为正红色平涂）",
+      "replace": "在上述范围内，将画面正中的黑色像素图形替换为同样像素网格尺寸的黑色像素风血糖仪剪影，圆角矩形机身正面带一块小屏幕",
+      "scope": "仅编辑画面正中那一整块由黑色方块堆叠而成的像素图形，此范围以外的画面保持与原图完全一致",
+    },
+  },
+  "ref_protocol": null,
+  "text2img": "瑞士国际主义排版 + 像素／8-bit 图形排版海报：中景平视，像素风血糖仪剪影，圆角矩形机身，正面一块小屏幕，纯黑平涂，位于画面正中，占画面约 28%，纯平面无光影模拟，无投影无高光，高饱和，暖色调，极致高对比，中间调，主色高饱和正红（#FF2424）约占 74%、辅色米杏色（#FED4AB）约占 12%、点缀色纯黑（#010101）约占 9%，整幅画面呈哑光质感（纯平涂，无渐变、无肌理、无反锯齿），严格几何形态，平直边缘、锐利转角，无圆角，全部为 90 度直角方块，轮廓呈阶梯状锯齿，像素块之间无间隙、直接相接；文字左右贴边出血，两侧无外边距，主图形由统一尺寸的正方形像素块阶梯式堆叠构成，像素网格尺寸全画面一致，画面中部横向带状区域为干净负空间，约占画面 20%，四边贴边满宽单栏 + 居中对称轴，图形四边出血裁切，画面中部横向带状区域保持干净，供后期叠加文字图层，强烈冲击、复古电子游戏感、热烈直接氛围",
+}
+`;
+
+exports[`编译产物快照 > 跨主体：新年海报风格 → 血糖仪微信头图 1`] = `
+[
+  {
+    "aspect_ratio": "16:9",
+    "img2img_edit": null,
+    "img2img_style_ref": "上传参考图作为风格参考，保持其严格几何形态，平直边缘、锐利转角，无圆角，全部为 90 度直角方块，轮廓呈阶梯状锯齿，像素块之间无间隙、直接相接；文字左右贴边出血，两侧无外边距，主图形由统一尺寸的正方形像素块阶梯式堆叠构成，像素网格尺寸全画面一致；高饱和，暖色调，极致高对比，中间调的色彩关系；整幅画面呈哑光质感（纯平涂，无渐变、无肌理、无反锯齿），画面主体替换为一台白色家用血糖仪，圆角矩形机身，正面有一块深色小屏幕，机身素净无任何标识，斜 45 度立于画面中，仅提取参考图的视觉风格，画面内容与文字全部按新主体重新绘制",
+    "model": "jimeng",
+    "notes": [
+      "文案未写进提示词：先生成主视觉，标题后期以可编辑图层叠加，文字正确性和排版更可控。需要模型直接画字请把 brief.render_text_in_image 设为 true。",
+      "画幅比例 16:9 请在平台界面选择，提示词里只写了构图意图。",
+    ],
+    "parts": {
+      "edit": null,
+    },
+    "ref_protocol": "图 A（evals/fixtures/red-pixel-newyear-poster.stylespec.json）：只参考视觉风格——色彩、材质、光线、质感。忽略其画面内容与构图。",
+    "text2img": "瑞士国际主义排版 + 像素／8-bit 图形排版海报，中景平视，一台白色家用血糖仪，圆角矩形机身，正面有一块深色小屏幕，机身素净无任何标识，斜 45 度立于画面中，纯平面无光影模拟，无投影无高光，高饱和，暖色调，极致高对比，中间调，主色高饱和正红约占 74%、辅色米杏色约占 12%、点缀色纯黑约占 9%，整幅画面呈哑光质感（纯平涂，无渐变、无肌理、无反锯齿），严格几何形态，平直边缘、锐利转角，无圆角，全部为 90 度直角方块，轮廓呈阶梯状锯齿，像素块之间无间隙、直接相接；文字左右贴边出血，两侧无外边距，主图形由统一尺寸的正方形像素块阶梯式堆叠构成，像素网格尺寸全画面一致，主体位于画面中央、占画面约 28%，画面中部横向带状区域保留约 20% 负空间，画面下方三分之一保持干净可排版，四边贴边满宽单栏 + 居中对称轴，中等密度，图形四边出血裁切，强烈冲击、复古电子游戏感、热烈直接氛围，纯色极简背景，画面整洁，画面仅有产品与环境，商业广告级画质",
+  },
+  {
+    "aspect_ratio": "16:9",
+    "img2img_edit": null,
+    "img2img_style_ref": "上传参考图，仅作风格参考，提取其风格语言：严格几何形态，平直边缘、锐利转角，无圆角，全部为 90 度直角方块，轮廓呈阶梯状锯齿，像素块之间无间隙、直接相接；文字左右贴边出血，两侧无外边距，主图形由统一尺寸的正方形像素块阶梯式堆叠构成，像素网格尺寸全画面一致；整幅画面呈哑光质感（纯平涂，无渐变、无肌理、无反锯齿）；高饱和，暖色调，极致高对比，中间调，风格流派 Swiss International Typographic Style + pixel art / 8-bit graphics，画面内容改为一台白色家用血糖仪，圆角矩形机身，正面有一块深色小屏幕，机身素净无任何标识，斜 45 度立于画面中，按新主体重新构图，参考图的具体物体、场景和文字不进入生成结果（英文风格参考：Full-bleed high-saturation vermilion ground; strictly three colours — vermilion at roughly 70 percent, warm cream and pure black carrying every form and letter; all shapes built from uniform square pixel blocks in stepped stacks, 90-degree corners, jagged silhouettes, no rounding, no gradients, no anti-aliasing; ultra-bold grotesque uppercase lettering spans the top and bottom edges at full width with extremely tight tracking and zero side margin; a column of minute vertical type runs along each side edge; a clean flat band in the lower-middle holds short centred copy; completely flat with no lighting, shadow or texture; extreme weight contrast between oversized display type and tiny body copy; bold, direct, retro arcade feel）",
+    "model": "gpt-image",
+    "notes": [
+      "未提供 brief.edit，不产出垫图编辑指令。换主体/改局部请填写 edit 块（scope_anchor + protect + replace），四个部件齐全才会编译。",
+    ],
+    "parts": {
+      "edit": null,
+    },
+    "ref_protocol": "图 A（evals/fixtures/red-pixel-newyear-poster.stylespec.json）：只参考视觉风格——色彩、材质、光线、质感。忽略其画面内容与构图。",
+    "text2img": "瑞士国际主义排版 + 像素／8-bit 图形排版海报：中景平视，一台白色家用血糖仪，圆角矩形机身，正面有一块深色小屏幕，机身素净无任何标识，斜 45 度立于画面中，位于画面正中，占画面约 28%，纯平面无光影模拟，无投影无高光，高饱和，暖色调，极致高对比，中间调，主色高饱和正红（#FF2424）约占 74%、辅色米杏色（#FED4AB）约占 12%、点缀色纯黑（#010101）约占 9%，整幅画面呈哑光质感（纯平涂，无渐变、无肌理、无反锯齿），严格几何形态，平直边缘、锐利转角，无圆角，全部为 90 度直角方块，轮廓呈阶梯状锯齿，像素块之间无间隙、直接相接；文字左右贴边出血，两侧无外边距，主图形由统一尺寸的正方形像素块阶梯式堆叠构成，像素网格尺寸全画面一致，画面中部横向带状区域为干净负空间，约占画面 20%，四边贴边满宽单栏 + 居中对称轴，图形四边出血裁切，画面下方三分之一保持干净，供后期叠加文字图层，强烈冲击、复古电子游戏感、热烈直接氛围，纯色极简背景，画面整洁，画面仅有产品与环境，画面中不出现杂物、真人出镜，商业广告级画质",
+  },
+]
+`;
+
+exports[`编译产物快照 > 跨主体：高调白渲染风格 → 血糖仪微信头图 1`] = `
+[
+  {
+    "aspect_ratio": "16:9",
+    "img2img_edit": null,
+    "img2img_style_ref": "上传参考图作为风格参考，保持其几何形态配大半径圆角，平直边缘、饱满但硬朗，不要波浪形有机曲线，方形轮廓配超大半径圆角，圆角半径约为边长的四分之一，饱满但硬朗，主体四周留白宽度大致均等，约为主体宽度的一半，单一体块，无重复构成；近乎无彩，中性色调，低对比，亮调的色彩关系；主体外壳呈哑光质感（细腻哑光塑料，边缘只有微弱高光过渡）、小面积点缀色块呈橡胶质感（哑光软胶），画面主体替换为一台白色家用血糖仪，圆角矩形机身，正面有一块深色小屏幕，机身素净无任何标识，斜 45 度立于画面中，仅提取参考图的视觉风格，画面内容与文字全部按新主体重新绘制",
+    "model": "jimeng",
+    "notes": [
+      "文案未写进提示词：先生成主视觉，标题后期以可编辑图层叠加，文字正确性和排版更可控。需要模型直接画字请把 brief.render_text_in_image 设为 true。",
+      "画幅比例 16:9 请在平台界面选择，提示词里只写了构图意图。",
+    ],
+    "parts": {
+      "edit": null,
+    },
+    "ref_protocol": "图 A（evals/fixtures/red-pixel-newyear-poster.stylespec.json）：只参考视觉风格——色彩、材质、光线、质感。忽略其画面内容与构图。",
+    "text2img": "极简留白 + C4D 商业渲染3D 渲染，中景正俯拍，一台白色家用血糖仪，圆角矩形机身，正面有一块深色小屏幕，机身素净无任何标识，斜 45 度立于画面中，大面积柔光箱顶部漫射光，柔和顶光，低光比，近乎无彩，中性色调，低对比，亮调，主色近白约占 90%、辅色极浅灰阶阴影约占 8%、点缀色低饱和薄荷绿小面积点缀，主体外壳呈哑光质感（细腻哑光塑料，边缘只有微弱高光过渡）、小面积点缀色块呈橡胶质感（哑光软胶），几何形态配大半径圆角，平直边缘、饱满但硬朗，不要波浪形有机曲线，方形轮廓配超大半径圆角，圆角半径约为边长的四分之一，饱满但硬朗，主体四周留白宽度大致均等，约为主体宽度的一半，单一体块，无重复构成，主体位于画面中央、占画面约 16%，主体四周保留约 80% 负空间，画面下方三分之一保持干净可排版，居中单主体，四周留白宽度大致均等，画面元素极少、大量呼吸空间，安静克制、干净通透、高级极简氛围，纯色极简背景，画面整洁，画面仅有产品与环境，商业广告级画质",
+  },
+  {
+    "aspect_ratio": "16:9",
+    "img2img_edit": null,
+    "img2img_style_ref": "上传参考图，仅作风格参考，提取其风格语言：几何形态配大半径圆角，平直边缘、饱满但硬朗，不要波浪形有机曲线，方形轮廓配超大半径圆角，圆角半径约为边长的四分之一，饱满但硬朗，主体四周留白宽度大致均等，约为主体宽度的一半，单一体块，无重复构成；主体外壳呈哑光质感（细腻哑光塑料，边缘只有微弱高光过渡）、小面积点缀色块呈橡胶质感（哑光软胶）；近乎无彩，中性色调，低对比，亮调，风格流派 minimalist, generous negative space + C4D style commercial render，画面内容改为一台白色家用血糖仪，圆角矩形机身，正面有一块深色小屏幕，机身素净无任何标识，斜 45 度立于画面中，按新主体重新构图，参考图的具体物体、场景和文字不进入生成结果（英文风格参考：Near-white high-key field: ground and subject sit in the same very light value range, separated only by a faint grey contact shadow; almost achromatic overall, with a single small patch of muted mint as the only chromatic accent; one centred subject with roughly equal margins on all sides, negative space totalling about 80 percent of the frame; squared silhouette with an oversized corner radius roughly a quarter of the edge length, full-bodied yet crisp; fine matte surfaces with only a soft highlight roll-off at the edges, no specular reflection and no hard-edged shadow; broad soft-box overhead diffusion at a very low lighting ratio; extremely restrained typography, just one line of widely tracked minute type along the bottom; quiet, airy, understated premium feel）",
+    "model": "gpt-image",
+    "notes": [
+      "未提供 brief.edit，不产出垫图编辑指令。换主体/改局部请填写 edit 块（scope_anchor + protect + replace），四个部件齐全才会编译。",
+    ],
+    "parts": {
+      "edit": null,
+    },
+    "ref_protocol": "图 A（evals/fixtures/red-pixel-newyear-poster.stylespec.json）：只参考视觉风格——色彩、材质、光线、质感。忽略其画面内容与构图。",
+    "text2img": "极简留白 + C4D 商业渲染3D 渲染：中景正俯拍，一台白色家用血糖仪，圆角矩形机身，正面有一块深色小屏幕，机身素净无任何标识，斜 45 度立于画面中，位于画面正中，占画面约 16%，大面积柔光箱顶部漫射光，柔和顶光，低光比，近乎无彩，中性色调，低对比，亮调，主色近白（#FBFBFB）约占 90%、辅色极浅灰阶阴影（#ECECEC）约占 8%、点缀色低饱和薄荷绿（#C2D7CE）小面积点缀，主体外壳呈哑光质感（细腻哑光塑料，边缘只有微弱高光过渡）、小面积点缀色块呈橡胶质感（哑光软胶），几何形态配大半径圆角，平直边缘、饱满但硬朗，不要波浪形有机曲线，方形轮廓配超大半径圆角，圆角半径约为边长的四分之一，饱满但硬朗，主体四周留白宽度大致均等，约为主体宽度的一半，单一体块，无重复构成，主体四周为干净负空间，约占画面 80%，居中单主体，四周留白宽度大致均等，画面下方三分之一保持干净，供后期叠加文字图层，安静克制、干净通透、高级极简氛围，纯色极简背景，画面整洁，画面仅有产品与环境，画面中不出现杂物、真人出镜，商业广告级画质",
+  },
+]
+`;

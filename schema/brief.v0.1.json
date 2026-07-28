@@ -1,0 +1,120 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/Raymond711xl/image2prompt/schema/brief.v0.1.json",
+  "title": "Creation Brief v0.1",
+  "description": "本次要生成什么。与 StyleSpec 合并后编译成模型专用提示词。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "purpose", "aspect_ratio", "subject"],
+  "properties": {
+    "schema_version": { "const": "0.1" },
+
+    "purpose": {
+      "enum": ["web_hero", "poster", "wechat_cover", "xhs_cover", "banner", "background", "ppt", "social_card"]
+    },
+    "aspect_ratio": { "type": "string", "pattern": "^[0-9]+:[0-9]+$" },
+
+    "subject": { "type": "string", "description": "这次要画什么。背景图类可写「无主体」。" },
+    "subject_detail": { "type": "string", "description": "外观细节：材质、颜色、朝向、比例。具体压倒抽象。" },
+    "action": { "type": ["string", "null"], "description": "动作状态，尤其手怎么接触产品" },
+    "scene": { "type": ["string", "null"], "description": "场景环境。留空则沿用 StyleSpec 的场景气质但不复制具体内容。" },
+
+    "copy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "title": { "type": ["string", "null"] },
+        "subtitle": { "type": ["string", "null"] },
+        "body": { "type": ["string", "null"] }
+      }
+    },
+    "copy_safe_area": {
+      "enum": ["top_third", "bottom_third", "left_half", "right_half", "center", "upper_left", "upper_right", "lower_left", "lower_right", "none"],
+      "default": "none",
+      "description": "文案安全区。留空则继承 StyleSpec 的 typography.safe_area。"
+    },
+    "render_text_in_image": {
+      "type": "boolean",
+      "default": false,
+      "description": "false = 只生成主视觉，文字后期以可编辑图层叠加（海报/头图推荐）；true = 让模型直接画字。"
+    },
+
+    "must_keep": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "必须保留项。出现在这里的品牌名可以豁免 lint L6。"
+    },
+    "must_avoid": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "禁止项。编译时尽量转成正向表述（模型对否定词不敏感），转不了的会落到 notes 里建议填平台负向词框。"
+    },
+
+    "refs": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "三个参考槽。分开填才能明确告诉模型「从哪张图参考什么」，避免多图互相污染。",
+      "properties": {
+        "style": { "type": ["string", "null"], "description": "主风格参考图路径，决定整体视觉语言" },
+        "composition": { "type": ["string", "null"], "description": "构图参考图路径，决定主体位置和留白" },
+        "subject": { "type": ["string", "null"], "description": "主体参考图路径，决定产品/人物外观" }
+      }
+    },
+
+    "edit": {
+      "type": "object",
+      "description": "垫图局部编辑意图。提供此块才会产出 GPT Image 2 编辑指令——四个字段对应边界控制四纪律，缺一不可，编译期即失败。",
+      "additionalProperties": false,
+      "required": ["scope_anchor", "protect", "replace"],
+      "properties": {
+        "scope_anchor": {
+          "type": "string",
+          "minLength": 6,
+          "description": "纪律一：用看得见的视觉锚点圈定编辑区，如「画面中央偏右、带深灰色悬浮顶棚的那一个展位」。禁止用模型看不见产权的概念词（「展位内」「我们的区域」）。"
+        },
+        "protect": {
+          "type": "array",
+          "minItems": 1,
+          "description": "纪律二：保护清单与修改清单同等重要。必须点名元素的原有内容——点名原内容等于把它锚死。",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["element", "original_content"],
+            "properties": {
+              "element": { "type": "string" },
+              "original_content": { "type": "string", "minLength": 2 }
+            }
+          }
+        },
+        "replace": {
+          "type": "array",
+          "minItems": 1,
+          "description": "纪律三：枚举替换目标。target 中出现「所有/全部/每个」这类量词会被编译器拒绝——量词会扫射到边界外。",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["target", "new_content"],
+            "properties": {
+              "target": { "type": "string" },
+              "new_content": { "type": "string" }
+            }
+          }
+        },
+        "merge_requirements": {
+          "type": ["string", "null"],
+          "description": "融合要求：新元素匹配原图光影透视、接触面阴影自然。这一句决定成品像不像 P 上去的。"
+        }
+      }
+    },
+
+    "quality_words": {
+      "type": "array",
+      "maxItems": 2,
+      "items": { "type": "string" },
+      "description": "画质词点到为止，最多 2 个。堆砌不会更清晰，只会稀释权重。"
+    },
+
+    "variants": { "type": "integer", "minimum": 1, "maximum": 5, "default": 1 },
+    "notes": { "type": "string" }
+  }
+}

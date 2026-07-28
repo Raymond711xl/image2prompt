@@ -1,48 +1,86 @@
-# image2prompt
+# Image to Prompt
 
-参考图 → 生图提示词的三合一 skill，为广告提案配图场景设计。识图用平台原生视觉能力（无任何外部 API 依赖），输出可直接粘贴的提示词，双版本适配国产模型（即梦/豆包/可灵）和 GPT Image 2。
+macOS 菜单栏工具：**拖一张图进来 → 理解它的风格 → 调参偏移 → 产出可直接用的生图提示词**。
 
-## 三种模式
+> 名字是占位的，未定。
 
-| 模式 | 场景 | 触发例句 | 核心交付 |
-|---|---|---|---|
-| **A 风格反推** | 设计精美、风格说不出名字的图 | "这是什么风格？照这个感觉来一张" | 可复用的**风格 DNA**（与内容无关的风格描述块）+ 双版本提示词 |
-| **B 照片优化** | 手机拍摄的问题照片 | "帮我修一下，拉直、更清晰" | 诊断清单 → 主观决定问用户 → 一条垫图修图指令 |
-| **C 改图微调** | 换主体/删元素/小改动 | "把顺丰展位换成德邦物流" | 图像配方 + 边界受控的编辑指令 |
+## 它和"垫图"的区别
 
-## 安装
+垫图把像素直接喂给生图模型，得到的是复制品，而且**没有旋钮**——你没法对一张垫图说"色相转 20 度、密度降一档"。
 
-同一份代码，Claude Code 和 Codex 双入口（两平台 SKILL.md 格式相同）：
+本工具先把风格解析成结构化的 `StyleSpec`，再在字段上做受控变换，所以每次偏移都能说清改了哪几个字段。
+
+> 随机重跑得到的是噪声，受控偏移得到的是变体。
+
+垫图没有被废弃，但降级为保底修复路线：文生图两轮都不像时才上。
+
+## 当前状态
+
+**A0 已完成**：仓库结构就位，SwiftPM 能编出可运行的空壳菜单栏 App。
+
+**A1 下一步**：拖入 → 待办队列 → 后台反推 → 出提示词。
+
+完整路线见 [`docs/roadmap.md`](docs/roadmap.md)。
+
+## 目录结构
+
+```
+├── schema/          StyleSpec / Brief 的单一事实来源，core-ts 和 app 共用
+├── knowledge/       方法论原文：设计风格库、模型规范、修图模板
+├── core-ts/         TypeScript 参考实现 + 验证工装（Track B）
+├── app/             Swift App（Track A）
+├── docs/            路线图、StyleSpec 说明、改造方案
+└── SKILL.md         过渡期保留，A1 跑通后删除
+```
+
+`schema/` 和 `knowledge/` 刻意放在仓库根：两条轨道都要读它们，复制两份必然漂移。
+
+## 开发
+
+需要 Swift 6.1+（Command Line Tools 即可，**不需要 Xcode**）和 Node 20+。
 
 ```bash
-ln -sfn "<本目录绝对路径>" ~/.claude/skills/image2prompt   # Claude Code
-ln -sfn "<本目录绝对路径>" ~/.codex/skills/image2prompt    # Codex
+# Swift App
+cd app
+swift build
+swift test                  # 用 swift-testing，不依赖 Xcode
+./Scripts/bundle.sh         # 打成 .app，菜单栏出现图标
+open ".build/debug/Image to Prompt.app"
 ```
 
-或直接安装打包好的 `image2prompt.skill` 文件。无需配置任何 API key。
-
-## 文件结构
-
-```
-image2prompt/
-├── SKILL.md                    # 主流程：拿图 → 模式分流 → 按模式产出
-└── references/
-    ├── ad-types.md             # 广告图类型库（识别阶段强化：hero shot/场景图/情绪海报/背景图等）
-    ├── design-styles.md        # 设计风格词汇库（26 个流派判别 + 形态词避坑）
-    ├── photo-fix.md            # 固定修图指令模板 + 追加条目
-    ├── jimeng.md               # 国产模型中文提示词规范
-    └── gpt-image.md            # GPT Image 2 规范（垫图编辑公式 + 边界控制）
+```bash
+# TypeScript 内核
+cd core-ts
+npm install
+npm test                    # 43 passed
+npx tsx src/cli.ts --help
 ```
 
-## 实测沉淀的关键设计（2026-07 三轮真实测试）
+Xcode 只在两种情况下需要：SwiftUI 实时预览、公证后分发给别人。
 
-- **形态词避坑**（A 测试）："液态/流动"会把模型推向有机泡泡字，几何感必须写"平直边缘 + 大圆角"；负空间宽度和图形密度要写成硬约束。
-- **先问再开方**（B 测试）：诊断客观，修法主观——景别裁切、色调取向、保留强调三类决定交用户拍板，默认不裁切；白平衡顽固偏色用"白色锚点"写法。
-- **边界控制**（C 测试）：编辑模型有"主题一致化"倾向，局部编辑指令必须先圈范围（视觉锚点）→ 锁保护清单 → 枚举替换目标（禁用"所有"）→ 禁增禁删。
+## 分支
 
-## 版本
+```
+main   ← v1.0.0 skill 原样保留，两个软链继续工作
+  └── app   ← App 开发全部在这里（用 git worktree，不是 checkout）
+```
 
-- v1 千问 vision.js 识图（已废弃）
-- v2 原生识图 + Claude/Codex 双入口 + GPT Image 2
-- v3 三模式分流（风格反推 / 照片优化 / 改图微调）
-- v4 三轮实测打磨定稿（形态词避坑、先问再开方、边界控制、垫图风格参考路线）
+`~/.claude/skills/image2prompt` 和 `~/.codex/skills/image2prompt` 都软链到仓库工作目录，
+`git checkout` 会当场换掉它们看到的文件。所以 app 分支用独立 worktree：
+
+```bash
+git worktree add ../image2prompt-app app
+```
+
+A1 跑通后才合并回 `main` 并删除 `SKILL.md`。
+
+## 由来
+
+本仓库前身是 [`image2prompt`](https://github.com/Raymond711xl/image2prompt) skill——一个在 Claude Code
+和 Codex 里跑的参考图反推提示词工具。三轮真实测试沉淀下来的东西（形态词避坑、先问再开方、
+编辑边界四纪律）没有丢，它们变成了 `schema/` 里的字段设计、`core-ts/src/lint/` 里的检查规则，
+和 `knowledge/` 里的知识库。
+
+## License
+
+MIT
