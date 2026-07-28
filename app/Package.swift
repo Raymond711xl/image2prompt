@@ -12,7 +12,10 @@ let package = Package(
     targets: [
         .target(
             name: "Image2PromptCore",
-            path: "Sources/Image2PromptCore"
+            path: "Sources/Image2PromptCore",
+            // Resources/ 里的 StyleSpec 是从 core-ts/evals/fixtures/ 镜像过来的，
+            // 给 MockVisionProvider 当假数据。有一条测试盯着两边字节一致，防漂移。
+            resources: [.process("Resources")]
         ),
         .executableTarget(
             name: "Image2Prompt",

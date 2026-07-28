@@ -1,9 +1,11 @@
 #!/usr/bin/env node
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { Command } from 'commander';
 import { buildAnalyzePrompt } from './analyze/prompt.js';
+import { extractPalette } from './analyze/palette.js';
 import { compile, compileAll, CompileError, MODEL_IDS } from './compile/index.js';
+import { drift, type DriftKnobs } from './drift/index.js';
 import { hasError, lintPrompt, lintSpec, type Finding } from './lint/rules.js';
 import { runTransferTest } from './eval/transferTest.js';
 import { readBrief, readStyleSpec, validateBrief, validateStyleSpec } from './validate.js';
@@ -76,6 +78,30 @@ program
   });
 
 program
+  .command('palette')
+  .description('从图片像素里算色板（hex 和占比由程序算，不靠模型用眼睛估）')
+  .argument('<image>', '图片路径')
+  .option('-n, --max <n>', '最多返回几个色', (v) => parseInt(v, 10), 5)
+  .option('--json', '输出 JSON')
+  .action((image: string, opts: { max: number; json?: boolean }) => {
+    const abs = resolve(image);
+    if (!existsSync(abs)) {
+      console.error(C.red(`图片不存在：${abs}`));
+      process.exit(1);
+    }
+    const palette = extractPalette(abs, { max: opts.max });
+    if (opts.json) {
+      console.log(JSON.stringify(palette, null, 2));
+      return;
+    }
+    for (const p of palette) {
+      const [r, g, b] = [1, 3, 5].map((i) => parseInt(p.hex.slice(i, i + 2), 16));
+      const swatch = `\x1b[48;2;${r};${g};${b}m      \x1b[0m`;
+      console.log(`  ${swatch}  ${p.hex}  ${String(Math.round(p.ratio * 100)).padStart(3)}%  ${C.dim(p.role)}`);
+    }
+  });
+
+program
   .command('validate')
   .description('按 JSON Schema 校验 StyleSpec 或 Brief')
   .argument('<file>', 'JSON 文件路径')
@@ -143,6 +169,66 @@ program
     console.log(`\n${C.bold('检查')}`);
     printFindings(all);
     if (hasError(all)) process.exit(1);
+  });
+
+program
+  .command('drift')
+  .description('调参盘：在 StyleSpec 上做受控偏移，产出变体 spec + 改动清单')
+  .argument('<spec>', 'StyleSpec JSON 路径')
+  .option('--form <n>', '形态轴 -1(有机流动) .. +1(几何硬朗)', parseFloat)
+  .option('--density <n>', '密度轴 -1(疏) .. +1(密)', parseFloat)
+  .option('--temperature <n>', '色温轴 -1(冷) .. +1(暖)', parseFloat)
+  .option('--brightness <n>', '调性轴 -1(暗调) .. +1(亮调)', parseFloat)
+  .option('--saturation <n>', '饱和度轴 -1(降) .. +1(升)', parseFloat)
+  .option('-i, --intensity <n>', '强度环 0(忠实复刻) .. 3(大幅偏移)', (v) => parseInt(v, 10), 1)
+  .option('-o, --out <path>', '偏移后的 StyleSpec 写到此路径')
+  .action((specPath: string, opts: Record<string, number | string | undefined>) => {
+    const spec = readStyleSpec(resolve(specPath));
+    const knobs: DriftKnobs = {
+      form: opts.form as number | undefined,
+      density: opts.density as number | undefined,
+      temperature: opts.temperature as number | undefined,
+      brightness: opts.brightness as number | undefined,
+      saturation: opts.saturation as number | undefined,
+      intensity: opts.intensity as DriftKnobs['intensity'],
+    };
+    const { spec: next, diff } = drift(spec, knobs);
+
+    console.log(C.bold('偏移结果'));
+    if (!diff.changed) {
+      console.log(C.dim('  没有任何字段变化。强度环为 0，或所有旋钮都在中心，或已经撞到轴端点。'));
+    }
+    for (const c of diff.changes) {
+      console.log(`  ${C.cyan(c.field)}  ${C.dim(c.from)} → ${C.bold(c.to)}`);
+    }
+    if (diff.palette.length) {
+      console.log(`\n${C.bold('色板')}`);
+      for (const p of diff.palette) {
+        console.log(`  ${C.dim(p.role.padEnd(9))} ${p.from} → ${C.bold(p.to)}`);
+      }
+    }
+    if (diff.stale.length) {
+      console.log(`\n${C.bold('建议重写')} ${C.dim('（偏移算不了的自由文本，交给模型按上面的改动重写，纯文本调用不用再看图）')}`);
+      for (const s of diff.stale) console.log(`  ${C.yellow('!')} ${s}`);
+    }
+    if (diff.notes.length) {
+      console.log(`\n${C.bold('说明')}`);
+      for (const n of diff.notes) console.log(`  · ${n}`);
+    }
+
+    console.log(`\n${C.bold('偏移后的风格 DNA')}\n`);
+    console.log(next.style_dna);
+
+    // drift 的输出必须能过 lint，否则说明轴的联动规则写错了
+    console.log(`\n${C.bold('检查')} ${C.dim('（偏移后的 spec 必须仍然自洽）')}`);
+    const findings = lintSpec(next);
+    printFindings(findings);
+
+    if (opts.out) {
+      writeFileSync(resolve(opts.out as string), `${JSON.stringify(next, null, 2)}\n`, 'utf8');
+      console.log(C.green(`\n✓ 已写入 ${opts.out}`));
+    }
+    if (hasError(findings)) process.exit(1);
   });
 
 program

@@ -134,6 +134,22 @@ export const TYPEFACE_CN = cn({
   none: '',
 });
 
+export const WEIGHT_CONTRAST_CN = cn({
+  none: '',
+  low: '字重层级平缓',
+  medium: '字重层级明确',
+  extreme: '字重反差极大',
+});
+
+export const STROKE_WEIGHT_CN = cn({
+  hairline: '发丝级细线',
+  thin: '细线条',
+  medium: '中等线宽',
+  bold: '粗线条',
+  ultra_bold: '超粗线条',
+  none: '',
+});
+
 export const ALIGNMENT_CN = cn({
   grid: '严格网格对齐',
   centered: '居中排版',
