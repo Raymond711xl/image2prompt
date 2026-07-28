@@ -32,6 +32,11 @@ public final class QueueItem: Identifiable, @unchecked Sendable {
     public internal(set) var status: AnalysisStatus = .waiting
     public internal(set) var spec: StyleSpec?
 
+    /// 用户随手写的「这次要生成什么」原文。留着不丢——解析可能出错，原文是唯一真相。
+    public var briefText: String = ""
+    /// briefText 解析出来的结构化结果，用户可以继续改
+    public var brief: Brief?
+
     public var fileName: String { imageURL.lastPathComponent }
 
     public init(imageURL: URL, addedAt: Date = Date()) {

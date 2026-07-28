@@ -6,10 +6,18 @@ import SwiftUI
 @MainActor
 final class ThumbnailCache {
     static let shared = ThumbnailCache()
-    private var cache: [URL: NSImage] = [:]
+
+    /// 缓存键必须带尺寸。只用 URL 做键会导致列表行先缓存的小图被详情页命中——
+    /// 详情页要 2400px，拿到的却是列表行那张 132px 的，看起来就是"预览很糊"。
+    private struct Key: Hashable {
+        let url: URL
+        let maxPixel: Int
+    }
+    private var cache: [Key: NSImage] = [:]
 
     func thumbnail(for url: URL, maxPixel: CGFloat = 256) async -> NSImage? {
-        if let hit = cache[url] { return hit }
+        let key = Key(url: url, maxPixel: Int(maxPixel))
+        if let hit = cache[key] { return hit }
 
         // 只把 CGImage 跨线程传回来，NSImage 在主线程构造。
         // NSImage 不是 Sendable（内部有可变状态），CGImage 是不可变的，跨线程安全。
@@ -21,7 +29,7 @@ final class ThumbnailCache {
         let image = NSImage(
             cgImage: boxed.cgImage,
             size: NSSize(width: boxed.cgImage.width, height: boxed.cgImage.height))
-        cache[url] = image
+        cache[key] = image
         return image
     }
 

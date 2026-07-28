@@ -1,0 +1,33 @@
+{
+  "note": "形态与密度是算不出来的两个轴，由 Claude 逐张读图判断（2026-07-29）。色彩三轴由 core-ts/src/analyze/coords.ts 从像素计算，不在此文件。short 是人类可读的简称，file 对应 pictext/ 下的原文件名前缀。",
+  "images": [
+    { "short": "端午节KV",            "file": "03自由设计师",        "medium": "raster_illustration", "geometry": "organic_irregular", "density": "high",      "desc": "蓝色龟裂纹底 + 手写体中文标题 + 粽叶插画" },
+    { "short": "Gradient Layouts",   "file": "2026设计趋势",        "medium": "graphic_design",      "geometry": "organic_fluid",     "density": "low",       "desc": "紫品红橙大面积模糊渐变光晕 + 左侧竖排小字" },
+    { "short": "Google PPT",         "file": "Google这PPT",         "medium": "raster_illustration", "geometry": "organic_fluid",     "density": "low",       "desc": "柔和渐变风景 + 颗粒质感 + 白色 logo" },
+    { "short": "Grid Coffee",        "file": "Grid Coffee",         "medium": "mixed_media",         "geometry": "organic_irregular", "density": "medium",    "desc": "橄榄褐底 + 颗粒质感咖啡豆插画 + 中文大标题 + 底部实拍" },
+    { "short": "AKIRA",              "file": "【书籍推荐】",         "medium": "graphic_design",      "geometry": "mixed",             "density": "high",      "desc": "荧光洋红满版 + 白色几何字 + 底层漫画线稿" },
+    { "short": "电影节征片",          "file": "一键入海",            "medium": "graphic_design",      "geometry": "mixed",             "density": "high",      "desc": "暗底 + 彩色光晕边缘 + 白色粗体中文叠压 + 大量小字" },
+    { "short": "优衣库BLEACH",        "file": "优衣库",              "medium": "photography",         "geometry": "organic_irregular", "density": "saturated", "desc": "实拍T恤 + 黑白漫画角色密集拼贴 + 洋红标题" },
+    { "short": "Global Ready",       "file": "原创｜拒绝廉价感",     "medium": "graphic_design",      "geometry": "organic_fluid",     "density": "low",       "desc": "蓝白品牌全案 + 单线条有机图形 + 环绕排版" },
+    { "short": "AI艺术中心",          "file": "官宣",                "medium": "raster_illustration", "geometry": "organic_fluid",     "density": "medium",    "desc": "橙红圆润山峦风景插画 + 蓝色中文标题" },
+    { "short": "迴岛IP",              "file": "尝试一种很新的IP",     "medium": "mixed_media",         "geometry": "organic_irregular", "density": "low",       "desc": "深蓝水面涟漪实拍 + 白色手绘线条 IP 叠加" },
+    { "short": "设计吐槽文字海报",     "file": "很高兴你也喜欢设计",   "medium": "typography_poster",   "geometry": "geometric_hard",    "density": "saturated", "desc": "满版蓝底 + 洋红深蓝文字爆炸式排版，纯文字" },
+    { "short": "Rocking Childhood",  "file": "拒绝×士味设计",        "medium": "mixed_media",         "geometry": "mixed",             "density": "high",      "desc": "蓝黄双色调实拍摇摇马 + 黄色衬线标题 + 几何装饰" },
+    { "short": "肯尼_V60",            "file": "肯尼最近收藏了什么P54-松弛时间_1", "medium": "photography", "geometry": "organic_irregular", "density": "medium", "desc": "明亮咖啡手冲实拍 + 橙色手写体大字满铺" },
+    { "short": "肯尼_BARISTA",        "file": "肯尼最近收藏了什么P54-松弛时间_2", "medium": "photography", "geometry": "none",            "density": "low",    "desc": "暗调咖啡店实拍 + 白色无衬线小字，几乎无图形语言" },
+    { "short": "肯尼_Harley",         "file": "肯尼最近收藏了什么P54-松弛时间_5", "medium": "photography", "geometry": "geometric_rounded", "density": "low",  "desc": "动态模糊实拍 + 薄荷绿几何无衬线 + 胶囊形 logo" },
+    { "short": "夜幕降临",            "file": "视觉日记｜每日排版训练 第153-161天_2", "medium": "mixed_media", "geometry": "geometric_hard", "density": "high", "desc": "电线杆剪影 + 蓝天渐变 + 荧光黄拉伸变形数字 + 密集小字" },
+    { "short": "黑網",               "file": "视觉日记｜每日排版训练 第153-161天_3", "medium": "mixed_media", "geometry": "geometric_hard", "density": "saturated", "desc": "仰拍钢结构网架 + 文字铺满四周 + 中央黑圆" },
+    { "short": "新拟态卡片",          "file": "视觉观察｜数字色彩➕新拟态✨_1", "medium": "graphic_design", "geometry": "geometric_rounded", "density": "high", "desc": "纯黑底 + 六块发光渐变圆角卡片网格" },
+    { "short": "渐变素材集",          "file": "视觉观察｜数字色彩➕新拟态✨_2", "medium": "graphic_design", "geometry": "organic_fluid", "density": "high", "desc": "纯黑底 + 彩虹渐变球体与骷髅素材阵列" },
+    { "short": "Onepot包月",          "file": "设计包月服务",         "medium": "raster_illustration", "geometry": "organic_irregular", "density": "sparse",    "desc": "白底 + 水彩质感黄色茶壶插画 + 灰绿标题，大量留白" },
+    { "short": "书艺双年展",          "file": "设计灵感 I 海报设计分享_3", "medium": "typography_poster", "geometry": "mixed",         "density": "medium",    "desc": "米灰底 + 黑色书法大字 + 严格网格排版 + 底部洋红色块" },
+    { "short": "夏日微风",            "file": "设计灵感 I 海报设计分享_4", "medium": "mixed_media",      "geometry": "mixed",         "density": "high",      "desc": "天蓝底 + 云朵实拍 + 黄色线框中文大字 + 云形色块" },
+    { "short": "PLASTIC LOVE",       "file": "设计灵感 I 海报设计分享_5", "medium": "mixed_media",      "geometry": "geometric_hard", "density": "medium",   "desc": "蓝底 + 实拍草莓饮品 + 白色几何大字 + 粉色手写花体" },
+    { "short": "Harvesting Heritage","file": "𝗣_𝘂𝘇𝘇𝗹𝗲｜不容错过的“隐藏菜单”_3", "medium": "collage", "geometry": "mixed",       "density": "saturated", "desc": "横版杂志跨页 + 撞色爆炸星形 + 蔬菜精细插画 + 密排正文" },
+    { "short": "Strip Mall",         "file": "𝗣_𝘂𝘇𝘇𝗹𝗲｜不容错过的“隐藏菜单”_8", "medium": "collage", "geometry": "geometric_hard", "density": "saturated", "desc": "横版杂志跨页 + 实拍照片方块拼贴 + 描边立体美式标题" },
+    { "short": "设计是场生意",         "file": "🔴设计师是个岗位",     "medium": "photography",         "geometry": "none",              "density": "low",       "desc": "暖褐色动态模糊实拍 + 白色衬线中英文竖排" },
+    { "short": "舊窗",               "file": "🔴🔵长草期海报Training-10_1", "medium": "photography",  "geometry": "geometric_hard",    "density": "medium",    "desc": "夜拍老楼窗户空调外机 + 荧光蓝右侧竖排排版" },
+    { "short": "籠",                 "file": "🔴🔵长草期海报Training-10_2", "medium": "mixed_media",  "geometry": "mixed",             "density": "medium",    "desc": "灰渐变底 + 黄色多边形灯笼实拍 + 荧光粉叠压排版" }
+  ]
+}

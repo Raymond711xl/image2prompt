@@ -14,7 +14,7 @@ struct DetailView: View {
                 PaletteCard(palette: spec.palette, color: spec.color)
                 FieldsCard(spec: spec)
                 LeakageCard(spec: spec)
-                PromptPending()
+                BriefSection(item: item, spec: spec)
             }
             .padding(20)
             .frame(maxWidth: 780, alignment: .leading)
@@ -40,10 +40,12 @@ private struct Preview: View {
                 Rectangle().fill(.quaternary)
             }
         }
-        .frame(maxHeight: 280)
+        .frame(maxHeight: 340)
         .clipShape(RoundedRectangle(cornerRadius: 10))
         .task(id: url) {
-            image = await ThumbnailCache.shared.thumbnail(for: url, maxPixel: 1400)
+            // 2400px 覆盖 Retina 下最宽 1200pt 的显示区。参考图的材质和颗粒是判断依据，
+            // 预览糊了就等于看不清风格。
+            image = await ThumbnailCache.shared.thumbnail(for: url, maxPixel: 2400)
         }
     }
 }
@@ -233,31 +235,6 @@ private struct LeakageCard: View {
                                 .foregroundStyle(.secondary)
                         }
                     }
-                }
-            }
-        }
-    }
-}
-
-// MARK: - 提示词（等编译层移植）
-
-private struct PromptPending: View {
-    var body: some View {
-        Card(title: "模型专用提示词", subtitle: "即梦 / 豆包 / 可灵版 · GPT Image 2 版") {
-            HStack(alignment: .top, spacing: 10) {
-                Image(systemName: "info.circle")
-                    .foregroundStyle(.secondary)
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("还需要一个「本次要画什么」的输入区")
-                        .font(.system(size: 12, weight: .medium))
-                    Text(
-                        "编译模型专用提示词需要 Brief：用途、画幅、主体、标题文案、文案安全区、禁止项。"
-                            + "只有风格没有主体，编译器写不出完整提示词。\n\n"
-                            + "上面的风格 DNA 已经可以直接复制使用——它本来就是与内容无关的风格块。"
-                    )
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
                 }
             }
         }

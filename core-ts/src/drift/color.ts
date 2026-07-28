@@ -70,6 +70,24 @@ export function hslToHex({ h, s, l }: Hsl): string {
   return `#${[r, g, b].map((n) => n.toString(16).padStart(2, '0')).join('')}`.toUpperCase();
 }
 
+/**
+ * 彩度：RGB 最大与最小分量之差。
+ *
+ * 「这个颜色有多鲜艳」不能用 HSL 的 saturation 衡量——#000001 视觉上是纯黑，
+ * 但它的 HSL 饱和度是 1.0（因为 max 和 min 之比是极端的）。在深色和浅色两端，
+ * HSL 饱和度会把肉眼几乎无彩的颜色报成满饱和，用它统计整张图的饱和度会得出荒谬结果。
+ * chroma 没有这个问题：它在纯黑、纯白、灰上都是 0，符合人对「鲜艳」的直觉。
+ */
+export function chroma(hex: string): number {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+  if (!m) throw new Error(`色值格式不合法：${hex}（需要 #RRGGBB）`);
+  const int = parseInt(m[1], 16);
+  const r = (int >> 16) & 255;
+  const g = (int >> 8) & 255;
+  const b = int & 255;
+  return (Math.max(r, g, b) - Math.min(r, g, b)) / 255;
+}
+
 /** 暖极与冷极的色相锚点。橙黄一带是暖，青蓝一带是冷。 */
 export const WARM_POLE = 30;
 export const COOL_POLE = 210;
