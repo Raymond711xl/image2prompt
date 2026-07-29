@@ -185,6 +185,8 @@ private struct QueueFooter: View {
 // MARK: - 空态
 
 private struct EmptyQueue: View {
+    @Environment(AppState.self) private var state
+
     var body: some View {
         VStack(spacing: 10) {
             Image(systemName: "square.and.arrow.down")
@@ -196,6 +198,10 @@ private struct EmptyQueue: View {
             Text("或直接拖到这个窗口")
                 .font(.system(size: 11))
                 .foregroundStyle(.tertiary)
+
+            Button("导入文件夹…") { state.onImportFolderRequested?() }
+                .controlSize(.small)
+                .padding(.top, 6)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -220,6 +226,14 @@ private struct Toolbar: ToolbarContent {
     @Environment(AppState.self) private var state
 
     var body: some ToolbarContent {
+        ToolbarItem(placement: .primaryAction) {
+            Button {
+                state.onImportFolderRequested?()
+            } label: {
+                Image(systemName: "folder.badge.plus")
+            }
+            .help("导入文件夹")
+        }
         ToolbarItem(placement: .primaryAction) {
             Button {
                 state.queue.clearCompleted()

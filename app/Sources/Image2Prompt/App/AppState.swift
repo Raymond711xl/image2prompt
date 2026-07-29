@@ -13,6 +13,7 @@ final class AppState {
     var selected: QueueItem?
 
     @ObservationIgnored var onSettingsRequested: (() -> Void)?
+    @ObservationIgnored var onImportFolderRequested: (() -> Void)?
     @ObservationIgnored var onQuitRequested: (() -> Void)?
     @ObservationIgnored var onBusyChanged: ((Bool) -> Void)?
 
