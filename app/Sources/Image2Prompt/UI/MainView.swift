@@ -11,7 +11,9 @@ struct MainView: View {
                 .navigationSplitViewColumnWidth(min: 260, ideal: 300, max: 380)
         } detail: {
             if let selected = state.selected, let spec = selected.spec {
-                DetailView(item: selected, spec: spec)
+                DetailView(
+                    item: selected, spec: spec,
+                    onBriefChanged: { state.queue.persistBrief(selected) })
             } else {
                 EmptyDetail()
             }

@@ -9,19 +9,27 @@ import SwiftUI
 struct BriefSection: View {
     @Bindable var item: QueueItem
     let spec: StyleSpec
+    /// Brief 改动后落库。原文和解析结果都要存——解析可能出错，原文是唯一真相。
+    var onBriefChanged: (() -> Void)?
 
     @State private var compiled: [(model: ModelId, result: Result<CompiledPrompt, CompileError>)] =
         []
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            InputCard(item: item, spec: spec, onParsed: compile)
+            InputCard(
+                item: item, spec: spec, onParsed: compile,
+                onChanged: { onBriefChanged?() })
 
             if let brief = item.brief {
                 ParsedCard(
                     brief: Binding(
                         get: { brief },
-                        set: { item.brief = $0; compile() }
+                        set: {
+                            item.brief = $0
+                            compile()
+                            onBriefChanged?()
+                        }
                     ))
 
                 ForEach(compiled, id: \.model) { entry in
@@ -48,6 +56,7 @@ private struct InputCard: View {
     @Bindable var item: QueueItem
     let spec: StyleSpec
     let onParsed: () -> Void
+    let onChanged: () -> Void
 
     var body: some View {
         SectionCard(title: "这次要生成什么", subtitle: "随便写，写完点解析——写得越具体，解析越准") {
@@ -73,6 +82,7 @@ private struct InputCard: View {
                 Button("解析") {
                     item.brief = HeuristicBriefParser.parseSync(text: item.briefText, spec: spec)
                     onParsed()
+                    onChanged()
                 }
                 .buttonStyle(.borderedProminent)
                 .disabled(item.briefText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
@@ -81,6 +91,7 @@ private struct InputCard: View {
                     Button("清空") {
                         item.brief = nil
                         onParsed()
+                        onChanged()
                     }
                     .buttonStyle(.borderless)
                 }

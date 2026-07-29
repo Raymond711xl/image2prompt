@@ -13,9 +13,11 @@ let package = Package(
         .target(
             name: "Image2PromptCore",
             path: "Sources/Image2PromptCore",
-            // Resources/ 里的 StyleSpec 是从 core-ts/evals/fixtures/ 镜像过来的，
-            // 给 MockVisionProvider 当假数据。有一条测试盯着两边字节一致，防漂移。
-            resources: [.process("Resources")]
+            // Resources/ 里有：MockVisionProvider 的假数据（从 core-ts/evals/fixtures/
+            // 镜像，有测试盯着字节一致）、分析指令模板、随包分发的 StyleSpec schema。
+            resources: [.process("Resources")],
+            // 系统自带 SQLite，不引第三方依赖
+            linkerSettings: [.linkedLibrary("sqlite3")]
         ),
         .executableTarget(
             name: "Image2Prompt",

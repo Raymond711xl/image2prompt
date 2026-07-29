@@ -26,7 +26,7 @@ public enum AnalysisStatus: Equatable, Sendable {
 
 @Observable
 public final class QueueItem: Identifiable, @unchecked Sendable {
-    public let id = UUID()
+    public let id: UUID
     public let imageURL: URL
     public let addedAt: Date
     public internal(set) var status: AnalysisStatus = .waiting
@@ -39,7 +39,13 @@ public final class QueueItem: Identifiable, @unchecked Sendable {
 
     public var fileName: String { imageURL.lastPathComponent }
 
-    public init(imageURL: URL, addedAt: Date = Date()) {
+    /// 图还在不在。原图只读，被移走了只标记，不擅自处理。
+    public var imageExists: Bool {
+        FileManager.default.isReadableFile(atPath: imageURL.path)
+    }
+
+    public init(id: UUID = UUID(), imageURL: URL, addedAt: Date = Date()) {
+        self.id = id
         self.imageURL = imageURL
         self.addedAt = addedAt
     }
@@ -70,10 +76,31 @@ public final class AnalysisQueue {
 
     private var provider: any VisionProvider
     private var running: [UUID: Task<Void, Never>] = [:]
+    /// 落库。为 nil 时纯内存运行（测试用）。
+    private let store: Store?
 
-    public init(provider: any VisionProvider) {
+    public init(provider: any VisionProvider, store: Store? = nil) {
         self.provider = provider
+        self.store = store
+        if let store {
+            // 上次退出时「分析中」的条目会被 Store 读回成「等待」——
+            // 进程都没了，那次分析不可能跑完
+            items = (try? store.loadAll()) ?? []
+        }
     }
+
+    /// 写回单条。存不进去不该让界面崩，但要留下痕迹。
+    private func persist(_ item: QueueItem) {
+        guard let store else { return }
+        do {
+            try store.upsert(item)
+        } catch {
+            lastStoreError = error.localizedDescription
+        }
+    }
+
+    /// 最近一次落库失败的原因，界面可以据此提示
+    public private(set) var lastStoreError: String?
 
     public func setProvider(_ newProvider: any VisionProvider) {
         provider = newProvider
@@ -101,9 +128,15 @@ public final class AnalysisQueue {
 
         let new = fresh.map { QueueItem(imageURL: $0) }
         items.append(contentsOf: new)
+        new.forEach(persist)
 
         if autoAnalyze { pump() }
         return new
+    }
+
+    /// 把用户改过的 Brief 写回磁盘。界面编辑后调用。
+    public func persistBrief(_ item: QueueItem) {
+        persist(item)
     }
 
     // MARK: - 控制
@@ -126,12 +159,16 @@ public final class AnalysisQueue {
     public func retry(_ item: QueueItem) {
         guard case .failed = item.status else { return }
         item.status = .waiting
+        persist(item)
         pump()
     }
 
     public func retryAllFailed() {
         for item in items where item.status.isTerminal {
-            if case .failed = item.status { item.status = .waiting }
+            if case .failed = item.status {
+                item.status = .waiting
+                persist(item)
+            }
         }
         pump()
     }
@@ -140,11 +177,13 @@ public final class AnalysisQueue {
         running[item.id]?.cancel()
         running[item.id] = nil
         items.removeAll { $0.id == item.id }
+        try? store?.delete(id: item.id)
     }
 
     public func clearCompleted() {
-        let keep = items.filter { $0.status != .done }
-        items = keep
+        let removed = items.filter { $0.status == .done }
+        items = items.filter { $0.status != .done }
+        for item in removed { try? store?.delete(id: item.id) }
     }
 
     // MARK: - 调度
@@ -161,6 +200,8 @@ public final class AnalysisQueue {
 
     private func start(_ item: QueueItem) {
         item.status = .analyzing
+        // 「分析中」刻意不落库——Store 会把它存成「等待」，
+        // 这样进程被杀掉后重开，这条会回到等待而不是卡在转圈
         let provider = self.provider
         let url = item.imageURL
 
@@ -186,6 +227,7 @@ public final class AnalysisQueue {
             let message = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
             item.status = .failed(message)
         }
+        persist(item)
         pump()
     }
 }

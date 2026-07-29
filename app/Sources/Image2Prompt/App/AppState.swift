@@ -18,9 +18,15 @@ final class AppState {
 
     private var lastBusy = false
 
+    /// 本地库文件位置，设置页显示用。打不开时为 nil（退回纯内存运行）。
+    let storePath: String?
+
     init() {
         let settings = Settings.shared
-        queue = AnalysisQueue(provider: settings.makeProvider())
+        // 库打不开不该让 App 起不来——降级成内存模式，并把原因显示在设置页
+        let store = try? Store(url: try Store.defaultURL())
+        storePath = store?.url.path
+        queue = AnalysisQueue(provider: settings.makeProvider(), store: store)
         queue.autoAnalyze = settings.autoAnalyze
         queue.maxConcurrent = settings.maxConcurrent
     }

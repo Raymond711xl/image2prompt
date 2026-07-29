@@ -5,6 +5,7 @@ import SwiftUI
 struct DetailView: View {
     let item: QueueItem
     let spec: StyleSpec
+    var onBriefChanged: (() -> Void)?
 
     var body: some View {
         ScrollView {
@@ -14,7 +15,7 @@ struct DetailView: View {
                 PaletteCard(palette: spec.palette, color: spec.color)
                 FieldsCard(spec: spec)
                 LeakageCard(spec: spec)
-                BriefSection(item: item, spec: spec)
+                BriefSection(item: item, spec: spec, onBriefChanged: onBriefChanged)
             }
             .padding(20)
             .frame(maxWidth: 960, alignment: .leading)

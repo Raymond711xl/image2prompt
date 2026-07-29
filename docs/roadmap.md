@@ -126,9 +126,55 @@ A1 跑通、App 真的能用之后，才合并回 `main` 并删除 `SKILL.md`。
 | Swift 6.1.2（Command Line Tools） | ✅ 已有 | 现在 |
 | swift-testing | ✅ 随工具链，无需 Xcode | 现在 |
 | Node 20+ | ✅ 已有 | `core-ts` |
+| SQLite | ✅ 系统自带 | 本地库 |
+| Claude Code / Codex CLI | ✅ 已装 | 本地 agent 识图 |
 | **Xcode** | ❌ 未装 | SwiftUI 实时预览、公证分发 |
-| Anthropic API key + base_url | ❌ 待提供 | A1 |
+| Anthropic API key | ❌ 待提供 | 仅在不走本地 agent 时需要 |
 | 图库路径 | ❌ 待提供 | B1 选图 |
+
+---
+
+## 识图引擎：本地 agent 优先
+
+识图是整个产品最花钱的一环（全库几千张），生图是零头。走本地 agent 把贵的那半边
+成本降到零——用户已经付过订阅了，不必再买 API。
+
+```
+VisionProvider
+├── MockVisionProvider     假数据，开发和测试
+├── LocalAgentProvider  ← 默认推荐：shell 调 claude / codex / 自定义 CLI
+├── AnthropicProvider      填 API key（待接入）
+└── OpenAICompatProvider   通义 / 智谱 / 豆包 / Kimi（待接入）
+```
+
+### 实测数据（2026-07-29）
+
+| 项目 | 结果 |
+|---|---|
+| 玩具指令（一行 JSON） | 12 秒 |
+| **完整 StyleSpec 指令** | **约 2 分 30 秒** |
+| 3 路并发（玩具指令） | 仍 12 秒，并发有效 |
+| schema 校验 | ✅ 首次即通过 |
+| lint | ❌ 2 条 L1 内容泄漏 → 已修指令 |
+
+**全库吞吐按完整指令算**：3000 张 ÷ 3 并发 × 2.5 分钟 ≈ **40 小时**。
+提高并发能压缩，但订阅有速率限制，实际要留退避重试。这不是一个通宵能跑完的量级，
+分批跑更现实。
+
+### 两个硬限制
+
+1. **agent 不能生图。** Claude Code / Codex 都是文本+代码 agent，能看图不能画图。
+   生图仍需生图模型 API，或手动贴到网页。订阅（Claude Max / ChatGPT Plus）不含
+   生图 API 额度——网页能画图，但没有可编程接口。
+2. **与 Mac App Store 沙盒互斥。** 沙盒禁止启动任意子进程，上架就用不了这个模式。
+   直接分发（公证的 `.dmg`）不受影响。想两者都要，得做两个构建。
+
+### GUI 启动的 PATH 陷阱
+
+双击启动的 `.app` **不继承登录 shell 的 PATH**（只有 `/usr/bin:/bin:/usr/sbin:/sbin`），
+装在 `~/.npm-global/bin` 或 `/opt/homebrew/bin` 的 agent 直接找不到。
+`AgentRunner.searchPaths` 补齐了常见安装位置——这是"终端能跑、双击跑不了"的
+最常见原因。
 
 XCTest 随 Xcode 走，Command Line Tools 里没有——所以测试统一用 **swift-testing**（`import Testing`），
 这样 43 个用例的移植不必等装 Xcode。
