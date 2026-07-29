@@ -55,13 +55,30 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         let window = makeWindow(
             title: "Image to Prompt",
-            size: NSSize(width: 980, height: 640),
+            size: Self.preferredMainSize(),
             root: MainView().environment(state)
         )
+        // 侧栏 + 详情页两栏，太窄会把大图压成一条。低于这个尺寸没有可用性可言。
+        window.minSize = NSSize(width: 900, height: 620)
+        // 记住你调过的尺寸和位置，下次按你的来，不再回到默认值
+        window.setFrameAutosaveName("MainWindow")
         window.delegate = self
         mainWindow = window
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
+    }
+
+    /// 默认尺寸按屏幕比例给，不写死像素。
+    /// 写死 980×640 在你的屏幕上就是「太小看不清」——这个窗口的主要内容是一张参考图，
+    /// 图小了整个工具就没意义了。
+    private static func preferredMainSize() -> NSSize {
+        guard let visible = NSScreen.main?.visibleFrame else {
+            return NSSize(width: 1280, height: 860)
+        }
+        return NSSize(
+            width: min(max(visible.width * 0.78, 1100), 1760),
+            height: min(max(visible.height * 0.82, 760), 1200)
+        )
     }
 
     private func showSettingsWindow() {

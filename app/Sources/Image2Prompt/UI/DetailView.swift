@@ -17,7 +17,7 @@ struct DetailView: View {
                 BriefSection(item: item, spec: spec)
             }
             .padding(20)
-            .frame(maxWidth: 780, alignment: .leading)
+            .frame(maxWidth: 960, alignment: .leading)
             .frame(maxWidth: .infinity)
         }
         .navigationTitle(item.fileName)
@@ -40,7 +40,8 @@ private struct Preview: View {
                 Rectangle().fill(.quaternary)
             }
         }
-        .frame(maxHeight: 340)
+        // 参考图是判断依据，不是配图。给足高度，随窗口一起长。
+        .frame(minHeight: 260, maxHeight: 560)
         .clipShape(RoundedRectangle(cornerRadius: 10))
         .task(id: url) {
             // 2400px 覆盖 Retina 下最宽 1200pt 的显示区。参考图的材质和颗粒是判断依据，
