@@ -189,6 +189,14 @@ public final class AnalysisQueue {
         try? store?.delete(id: item.id)
     }
 
+    /// 清空索引和分析结果。**不动原图**——原图从来只被读，不归这里管。
+    public func clearAll() {
+        running.values.forEach { $0.cancel() }
+        running.removeAll()
+        items.removeAll()
+        try? store?.deleteAll()
+    }
+
     public func clearCompleted() {
         let removed = items.filter { $0.status == .done }
         items = items.filter { $0.status != .done }
