@@ -35,17 +35,43 @@ macOS 菜单栏工具：**拖一张图进来 → 理解它的风格 → 调参�
 
 `schema/` 和 `knowledge/` 刻意放在仓库根：两条轨道都要读它们，复制两份必然漂移。
 
-## 开发
+## 安装与使用
 
-需要 Swift 6.1+（Command Line Tools 即可，**不需要 Xcode**）和 Node 20+。
+需要 Swift 6.1+（Command Line Tools 即可，**不需要 Xcode**）。
 
 ```bash
-# Swift App
+cd app && ./Scripts/bundle.sh release install
+```
+
+装进 `/Applications/Image to Prompt.app`，双击启动，菜单栏出现 ✨ 图标。
+
+### 接自己的 agent（推荐，不花 API 钱）
+
+识图是最花钱的一环（全库几千张），生图是零头。走本地 agent 把贵的那半边成本降到零——
+你已经付过订阅了，不必再买 API。
+
+设置 → 识图引擎，选：
+
+| 选项 | 说明 |
+|---|---|
+| Mock | 假数据，不联网。开发和体验路径用。 |
+| Claude Code | 调本地 `claude` CLI，用你的订阅额度 |
+| Codex | 调本地 `codex` CLI |
+| 自定义 agent | 填可执行文件 + 参数模板 + stdin 开关，任何"读指令吐文字"的 CLI 都能接 |
+| Anthropic API | 填 key（待接入） |
+
+点「检测」确认 CLI 找得到。单张完整分析约 2~3 分钟。
+
+**两个限制**：agent 只能看图不能生图，生图仍需复制提示词到网页或接生图 API；
+另外这个模式要启动子进程，与 Mac App Store 沙盒不兼容（直接分发不受影响）。
+
+## 开发
+
+```bash
 cd app
 swift build
 swift test                  # 用 swift-testing，不依赖 Xcode
-./Scripts/bundle.sh         # 打成 .app，菜单栏出现图标
-open ".build/debug/Image to Prompt.app"
+./Scripts/bundle.sh         # debug 构建，产物留在 .build/
 ```
 
 ```bash
