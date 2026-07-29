@@ -1,7 +1,7 @@
 import Foundation
 import Testing
 
-@testable import Image2PromptCore
+@testable import FormlessCore
 
 // 这几句话决定用户要不要去买 API——写错了会让人白花钱，所以它们要能被测。
 // 核心原则：**以实际能不能跑为准，不是以用户选了什么为准**。

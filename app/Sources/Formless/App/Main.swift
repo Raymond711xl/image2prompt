@@ -1,5 +1,5 @@
 import AppKit
-import Image2PromptCore
+import FormlessCore
 import SwiftUI
 import UniformTypeIdentifiers
 
@@ -72,11 +72,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             withTitle: "设置…", action: #selector(menuOpenSettings), keyEquivalent: ",")
         appMenu.addItem(.separator())
         appMenu.addItem(
-            withTitle: "隐藏 Image to Prompt", action: #selector(NSApplication.hide(_:)),
+            withTitle: "隐藏得意忘形", action: #selector(NSApplication.hide(_:)),
             keyEquivalent: "h")
         appMenu.addItem(.separator())
         appMenu.addItem(
-            withTitle: "退出 Image to Prompt", action: #selector(NSApplication.terminate(_:)),
+            withTitle: "退出得意忘形", action: #selector(NSApplication.terminate(_:)),
             keyEquivalent: "q")
         appMenu.items.forEach { if $0.action == #selector(menuOpenSettings) { $0.target = self } }
         appItem.submenu = appMenu
@@ -161,7 +161,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         let window = makeWindow(
-            title: "Image to Prompt",
+            title: "得意忘形",
             size: Self.preferredMainSize(),
             root: MainView().environment(state)
         )

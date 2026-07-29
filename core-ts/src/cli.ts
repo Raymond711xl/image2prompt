@@ -60,7 +60,7 @@ function printPrompt(p: CompiledPrompt): void {
 const program = new Command();
 program
   .name('i2p')
-  .description('image2prompt core：StyleSpec v0.1 + 提示词编译器')
+  .description('得意忘形 core-ts：StyleSpec v0.1 + 提示词编译器（Track B 工装）')
   .version('0.1.0');
 
 program

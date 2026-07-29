@@ -1,4 +1,4 @@
-import Image2PromptCore
+import FormlessCore
 import SwiftUI
 import UniformTypeIdentifiers
 

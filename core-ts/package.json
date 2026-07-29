@@ -1,5 +1,5 @@
 {
-  "name": "image2prompt-core",
+  "name": "formless-core",
   "version": "0.1.0",
   "private": true,
   "description": "StyleSpec 编译器的 TypeScript 参考实现。Track B 的验证工装：规则先在这里改、跑通真图验证，再移植进 app/ 的 Swift 版。schema 在仓库根 ../schema。",

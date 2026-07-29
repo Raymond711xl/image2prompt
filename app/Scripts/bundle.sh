@@ -14,10 +14,11 @@ CONFIG="${1:-debug}"
 INSTALL="${2:-}"
 cd "$(dirname "$0")/.."
 
-# 名字全是占位，等产品名定下来统一改这三行
-APP_NAME="Image to Prompt"
-EXECUTABLE="Image2Prompt"
-BUNDLE_ID="com.raymond711xl.image2prompt"
+# 这三行必须和 Sources/FormlessCore/AppIdentity.swift 里的常量一致：
+# 数据目录和 Keychain service 都按 bundle id 命名，对不上会当成另一个 App 的数据。
+APP_NAME="得意忘形"
+EXECUTABLE="Formless"
+BUNDLE_ID="com.raymond711xl.formless"
 VERSION="0.1.0"
 
 swift build -c "$CONFIG"
@@ -32,11 +33,18 @@ rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN" "$APP/Contents/MacOS/${EXECUTABLE}"
 
-# 资源 bundle 必须一起搬进去，否则分析指令和 schema 读不到
-for bundle in "${BIN_DIR}"/*.bundle; do
+# 资源 bundle 必须一起搬进去，否则分析指令和 schema 读不到。
+#
+# 只收本包的（SwiftPM 命名为 <包名>_<target名>.bundle，这里包名与可执行名同为 Formless）。
+# 早先用 *.bundle 通配，结果改名之后 .build 里残留的旧名字资源包被一起塞进了 .app——
+# 幽灵资源不会报错，只会让产物里多一份过期数据。
+found=0
+for bundle in "${BIN_DIR}/${EXECUTABLE}_"*.bundle; do
     [ -e "$bundle" ] || continue
     cp -R "$bundle" "$APP/Contents/Resources/"
+    found=1
 done
+[ "$found" = 1 ] || { echo "找不到 ${EXECUTABLE}_*.bundle —— 资源没进包，分析指令会读不到"; exit 1; }
 
 cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>

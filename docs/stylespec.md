@@ -67,5 +67,5 @@ content.*      ← 这张图画了什么     （换主体时整个丢弃）
 `schema_version` 是必填字段。改 schema 就要升版本号，并且：
 
 - `core-ts/` 和 `app/` 两侧同步
-- `app/Sources/Image2PromptCore/BuildInfo.swift` 里的 `styleSpecVersion` 跟着改
+- `app/Sources/FormlessCore/BuildInfo.swift` 里的 `styleSpecVersion` 跟着改
 - 已存的 StyleSpec JSON 要能被识别成旧版本，不能静默误读

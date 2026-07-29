@@ -1,7 +1,7 @@
 import Foundation
 import Testing
 
-@testable import Image2PromptCore
+@testable import FormlessCore
 
 // 跨实现一致性测试。
 //

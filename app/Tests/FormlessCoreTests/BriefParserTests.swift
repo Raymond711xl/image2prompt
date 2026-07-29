@@ -1,7 +1,7 @@
 import Foundation
 import Testing
 
-@testable import Image2PromptCore
+@testable import FormlessCore
 
 private let fixtures = URL(fileURLWithPath: #filePath)
     .deletingLastPathComponent()

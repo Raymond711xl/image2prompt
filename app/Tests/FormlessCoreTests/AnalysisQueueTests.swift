@@ -1,7 +1,7 @@
 import Foundation
 import Testing
 
-@testable import Image2PromptCore
+@testable import FormlessCore
 
 private func urls(_ names: String...) -> [URL] {
     names.map { URL(fileURLWithPath: "/tmp/\($0)") }

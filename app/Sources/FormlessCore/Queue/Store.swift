@@ -32,12 +32,40 @@ public final class Store {
 
     /// 默认落在 Application Support 下，跟着 bundle id 走
     public static func defaultURL() throws -> URL {
-        let base = try FileManager.default.url(
+        let fm = FileManager.default
+        let base = try fm.url(
             for: .applicationSupportDirectory, in: .userDomainMask,
             appropriateFor: nil, create: true)
-        let dir = base.appendingPathComponent("com.raymond711xl.image2prompt", isDirectory: true)
-        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        return dir.appendingPathComponent("library.sqlite")
+        let dir = base.appendingPathComponent(AppIdentity.bundleID, isDirectory: true)
+        try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        let url = dir.appendingPathComponent("library.sqlite")
+
+        migrateFromLegacyDirectory(
+            into: dir, from: base.appendingPathComponent(
+                AppIdentity.legacyBundleID, isDirectory: true))
+        return url
+    }
+
+    /// 改名（`image2prompt` → `formless`）之前存的库搬到新目录，否则老数据会凭空消失。
+    ///
+    /// 只在新目录还没有库、老目录有库时搬一次，之后这个函数每次都是空操作。
+    /// WAL 模式下 `-wal` 和 `-shm` 必须跟着主文件一起走：单独搬 `.sqlite` 会丢掉
+    /// 还没 checkpoint 的那部分写入。
+    /// 参数化而不是直接读 Application Support，是为了能用临时目录测——
+    /// 这段代码搬的是用户唯一一份数据，不该只靠肉眼审查。
+    static func migrateFromLegacyDirectory(into dir: URL, from legacy: URL) {
+        let fm = FileManager.default
+        let name = "library.sqlite"
+        guard !fm.fileExists(atPath: dir.appendingPathComponent(name).path),
+            fm.fileExists(atPath: legacy.appendingPathComponent(name).path)
+        else { return }
+
+        for suffix in ["", "-wal", "-shm"] {
+            let from = legacy.appendingPathComponent(name + suffix)
+            guard fm.fileExists(atPath: from.path) else { continue }
+            // 搬失败不抛错：拿不到老数据是遗憾，打不开 App 是故障。
+            try? fm.moveItem(at: from, to: dir.appendingPathComponent(name + suffix))
+        }
     }
 
     public init(url: URL) throws {

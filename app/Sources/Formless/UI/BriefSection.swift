@@ -1,5 +1,5 @@
 import AppKit
-import Image2PromptCore
+import FormlessCore
 import SwiftUI
 
 /// Brief 输入区：先自由写，再把解析结果摊开给你改。

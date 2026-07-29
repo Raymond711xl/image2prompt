@@ -1,14 +1,14 @@
 import Foundation
 import Testing
 
-@testable import Image2PromptCore
+@testable import FormlessCore
 
 // 移植正确性的真正判据不是"编译通过"，而是**能解码真实数据**。
 // 这两份 fixture 是 core-ts 用真图跑出来的，两侧共用同一批数据——
 // 哪个字段名映射错了、哪个枚举少了一个 case，这里立刻炸。
 
 private let fixturesDir = URL(fileURLWithPath: #filePath)
-    .deletingLastPathComponent()  // 去掉文件名 → Tests/Image2PromptCoreTests
+    .deletingLastPathComponent()  // 去掉文件名 → Tests/FormlessCoreTests
     .deletingLastPathComponent()  // → Tests
     .deletingLastPathComponent()  // → app
     .deletingLastPathComponent()  // → 仓库根

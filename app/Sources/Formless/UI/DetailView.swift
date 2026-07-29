@@ -1,5 +1,5 @@
 import AppKit
-import Image2PromptCore
+import FormlessCore
 import SwiftUI
 
 struct DetailView: View {

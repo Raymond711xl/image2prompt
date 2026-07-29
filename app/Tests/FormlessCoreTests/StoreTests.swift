@@ -1,7 +1,7 @@
 import Foundation
 import Testing
 
-@testable import Image2PromptCore
+@testable import FormlessCore
 
 private func tempStore() throws -> Store {
     let url = FileManager.default.temporaryDirectory

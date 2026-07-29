@@ -40,7 +40,7 @@ final class StatusItemController: NSObject {
 
         if let button = statusItem.button {
             button.image = NSImage(
-                systemSymbolName: "wand.and.stars", accessibilityDescription: "Image to Prompt")
+                systemSymbolName: "wand.and.stars", accessibilityDescription: "得意忘形")
             button.image?.isTemplate = true
 
             // 覆盖整个按钮的透明接收层。不改按钮外观，只负责收拖放。
@@ -71,7 +71,7 @@ final class StatusItemController: NSObject {
     func setBusy(_ busy: Bool) {
         guard let button = statusItem.button else { return }
         let name = busy ? "wand.and.stars.inverse" : "wand.and.stars"
-        button.image = NSImage(systemSymbolName: name, accessibilityDescription: "Image to Prompt")
+        button.image = NSImage(systemSymbolName: name, accessibilityDescription: "得意忘形")
         button.image?.isTemplate = true
     }
 
@@ -91,7 +91,7 @@ extension StatusItemController: NSMenuDelegate {
     func menuNeedsUpdate(_ menu: NSMenu) {
         menu.removeAllItems()
 
-        add(menu, "打开 Image to Prompt", #selector(openWindow), key: "o")
+        add(menu, "打开得意忘形", #selector(openWindow), key: "o")
         add(menu, "导入文件夹…", #selector(importFolder), key: "i")
 
         menu.addItem(.separator())
@@ -123,7 +123,7 @@ extension StatusItemController: NSMenuDelegate {
         menu.addItem(.separator())
         add(menu, "设置…", #selector(openSettings), key: ",")
         menu.addItem(.separator())
-        add(menu, "退出 Image to Prompt", #selector(quit), key: "q")
+        add(menu, "退出得意忘形", #selector(quit), key: "q")
     }
 
     private func add(_ menu: NSMenu, _ title: String, _ action: Selector, key: String) {

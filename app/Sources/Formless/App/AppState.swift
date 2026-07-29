@@ -1,5 +1,5 @@
 import Foundation
-import Image2PromptCore
+import FormlessCore
 import Observation
 
 /// 界面层的共享状态。队列本身住在 Core 里（可测），这里只负责把它和窗口接起来。

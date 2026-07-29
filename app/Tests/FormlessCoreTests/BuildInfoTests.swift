@@ -1,6 +1,6 @@
 import Testing
 
-@testable import Image2PromptCore
+@testable import FormlessCore
 
 // 用 swift-testing 而不是 XCTest：XCTest.framework 随 Xcode 走，
 // 只装 Command Line Tools 的机器上 `import XCTest` 直接失败。
