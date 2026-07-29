@@ -1,5 +1,7 @@
 # 得意忘形 · Formless
 
+**中文** · [English](README.en.md)
+
 macOS 菜单栏工具：**拖一张图进来 → 理解它的风格 → 调参偏移 → 产出可直接用的生图提示词**。
 
 ## 名字
@@ -120,6 +122,7 @@ cd app && ./Scripts/bundle.sh release install
 ├── core-ts/         TypeScript 参考实现 + 验证工装（Track B）
 ├── app/             Swift App（Track A）
 ├── docs/            路线图、StyleSpec 说明、改造方案
+├── pictext/         参考图语料，本地保留、不入库
 └── SKILL.md         过渡期保留，A1 验收后删除
 ```
 
@@ -137,27 +140,22 @@ cd core-ts && npm install && npm test    # 68 passed
 
 Xcode 只在两种情况下需要：SwiftUI 实时预览、公证后分发给别人。
 
-## 分支
+## 分支与历史
 
-```
-main   ← image2prompt skill v1.0.0 原样保留，两个软链继续工作
-  └── app   ← App 开发全部在这里（用 git worktree，不是 checkout）
-```
+`main` 就是 App 本体。前身 skill 完整保留在两个地方，随时可取：
 
-`~/.claude/skills/image2prompt` 和 `~/.codex/skills/image2prompt` 都软链到仓库工作目录，
-`git checkout` 会当场换掉它们看到的文件。所以 app 分支用独立 worktree：
+| 位置 | 内容 |
+|---|---|
+| [`skill` 分支](https://github.com/Raymond711xl/image2prompt/tree/skill) | v1.0.0 的 skill 原样，可浏览、可下载、可照旧安装 |
+| [`v1.0.0` tag](https://github.com/Raymond711xl/image2prompt/tree/v1.0.0) | 同一次提交，附带自动生成的源码归档 |
 
-```bash
-git worktree add ../image2prompt-app app
-```
+两者指向同一个 commit，它也在 `main` 的历史里——App 是从那次提交上长出来的，不是覆盖它。
 
-A1 验收通过后才合并回 `main` 并删除 `SKILL.md`。
+`SKILL.md` 暂时留在 `main` 上，A1 验收通过后删除。
 
 ## 由来
 
 本仓库前身是 `image2prompt` skill——一个在 Claude Code 和 Codex 里跑的参考图反推提示词工具。
-它的完整内容永久留在 [`v1.0.0`](https://github.com/Raymond711xl/image2prompt/tree/v1.0.0) 这个 tag 下，
-可以浏览、可以下载、可以照旧安装使用。
 
 三轮真实测试沉淀下来的东西（形态词避坑、先问再开方、编辑边界四纪律）没有丢：它们变成了
 `schema/` 里的字段设计、`core-ts/src/lint/` 里的检查规则、和 `knowledge/` 里的知识库。

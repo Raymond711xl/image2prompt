@@ -9,3 +9,9 @@ app/.swiftpm/
 # TypeScript / Node
 core-ts/node_modules/
 core-ts/dist/
+
+# 参考图语料，本地保留、绝不入库。
+# 原图是别人的作品，只做只读引用：StyleSpec 里存路径，不存像素。
+pictext/
+specs/
+briefs/
