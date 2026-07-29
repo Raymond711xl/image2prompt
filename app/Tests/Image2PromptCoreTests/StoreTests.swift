@@ -157,6 +157,55 @@ func queueSurvivesRestart() async throws {
     #expect(reopened.items.allSatisfy { $0.spec != nil }, "StyleSpec 没有被持久化")
 }
 
+@Test("重启后没跑完的条目会接着跑")
+@MainActor
+func resumesPendingAfterRestart() async throws {
+    let dbURL = FileManager.default.temporaryDirectory
+        .appendingPathComponent("i2p-resume-\(UUID().uuidString).sqlite")
+
+    // 先手工塞两条「等待」进库，模拟上次没跑完就退出
+    let store = try Store(url: dbURL)
+    for name in ["p.jpg", "q.jpg"] {
+        try store.upsert(QueueItem(imageURL: URL(fileURLWithPath: "/tmp/\(name)")))
+    }
+
+    let queue = AnalysisQueue(
+        provider: MockVisionProvider(delayRange: 0.01...0.03),
+        store: try Store(url: dbURL))
+    #expect(queue.items.count == 2)
+    #expect(queue.pendingCount == 2)
+    // 光是读回来还不够——不调 resumePending 它们会永远卡在等待
+    #expect(queue.activeCount == 0)
+
+    queue.autoAnalyze = true
+    queue.resumePending()
+
+    let deadline = Date().addingTimeInterval(5)
+    while Date() < deadline, !queue.items.allSatisfy({ $0.status.isTerminal }) {
+        try await Task.sleep(nanoseconds: 20_000_000)
+    }
+    #expect(queue.doneCount == 2)
+}
+
+@Test("关掉自动分析时，重启不会擅自开跑")
+@MainActor
+func doesNotResumeWhenAutoAnalyzeOff() async throws {
+    let dbURL = FileManager.default.temporaryDirectory
+        .appendingPathComponent("i2p-noresume-\(UUID().uuidString).sqlite")
+    let store = try Store(url: dbURL)
+    try store.upsert(QueueItem(imageURL: URL(fileURLWithPath: "/tmp/r.jpg")))
+
+    let queue = AnalysisQueue(
+        provider: MockVisionProvider(delayRange: 0.01...0.03),
+        store: try Store(url: dbURL))
+    queue.autoAnalyze = false
+    queue.resumePending()
+
+    try await Task.sleep(nanoseconds: 150_000_000)
+    #expect(queue.pendingCount == 1)
+    #expect(queue.doneCount == 0)
+}
+
 @Test("没有 store 时纯内存运行，不报错")
 @MainActor
 func worksWithoutStore() async throws {

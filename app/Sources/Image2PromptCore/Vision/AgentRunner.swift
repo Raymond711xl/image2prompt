@@ -172,6 +172,12 @@ public enum AgentRunner {
                 outPipe.fileHandleForReading.readabilityHandler = nil
                 errPipe.fileHandleForReading.readabilityHandler = nil
 
+                // 必须再同步收一次尾巴：进程退得快时，terminationHandler 可能早于
+                // 最后一次 readabilityHandler 触发，那块数据就丢了。
+                // 表现出来是"输出偶尔被截断"，下游报"找不到 JSON"，且难以复现。
+                state.appendOut(outPipe.fileHandleForReading.readDataToEndOfFile())
+                state.appendErr(errPipe.fileHandleForReading.readDataToEndOfFile())
+
                 guard state.claim() else { return }
                 let (out, err) = state.drain()
 

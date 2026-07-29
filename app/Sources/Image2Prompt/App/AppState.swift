@@ -29,6 +29,8 @@ final class AppState {
         queue = AnalysisQueue(provider: settings.makeProvider(), store: store)
         queue.autoAnalyze = settings.autoAnalyze
         queue.maxConcurrent = settings.maxConcurrent
+        // 上次没跑完的接着跑。必须在设置生效之后调，否则用的是默认并发数。
+        queue.resumePending()
     }
 
     /// 设置改了之后同步给队列

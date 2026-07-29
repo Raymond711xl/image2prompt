@@ -89,6 +89,15 @@ public final class AnalysisQueue {
         }
     }
 
+    /// 从库里读回条目后调用一次，把「等待」的接着跑起来。
+    ///
+    /// init 里不能直接 pump——那时 autoAnalyze 和 maxConcurrent 还没被设置页的值覆盖。
+    /// 不调这个，重启后所有等待中的条目会永远卡住，只有再拖一张新图才会被顺带带起来。
+    public func resumePending() {
+        guard autoAnalyze else { return }
+        pump()
+    }
+
     /// 写回单条。存不进去不该让界面崩，但要留下痕迹。
     private func persist(_ item: QueueItem) {
         guard let store else { return }
