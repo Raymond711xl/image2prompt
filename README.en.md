@@ -101,6 +101,9 @@ validation passed on the first try, and lint caught two content leaks (the analy
 since been fixed). What remains is a ten-image run-through and wiring up the Anthropic API.
 
 Full roadmap, knob-panel design, and cost estimates: [`docs/roadmap.md`](docs/roadmap.md).
+Change-by-change history and the reasoning behind each: [`CHANGELOG.md`](CHANGELOG.md) (in Chinese).
+The eight known gaps in the analysis layer, with evidence and trigger conditions:
+[`docs/analysis-gaps.md`](docs/analysis-gaps.md) (in Chinese).
 
 ## Install and use
 

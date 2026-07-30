@@ -84,7 +84,9 @@ agent——调你机器上已经装好的 `claude` / `codex` CLI，用你已经�
 A1 实测：单张完整分析约 **2 分 30 秒**（本地 agent），schema 校验首次通过，
 lint 抓出 2 条内容泄漏并已修分析指令。剩下的是 10 张连跑的验收、以及 Anthropic API 接入。
 
-完整路线、十字轴设计、成本估算见 [`docs/roadmap.md`](docs/roadmap.md)。
+完整路线、十字轴设计、成本估算见 [`docs/roadmap.md`](docs/roadmap.md)；
+逐次改动和当时的判断见 [`CHANGELOG.md`](CHANGELOG.md)；
+分析层已知的 8 条缺口、证据和触发条件见 [`docs/analysis-gaps.md`](docs/analysis-gaps.md)。
 
 ## 安装与使用
 
