@@ -62,6 +62,32 @@ describe('lint：StyleSpec 级', () => {
     expect(lintSpec(s).some((f) => f.rule === 'L1' && f.where === 'style_dna_en')).toBe(true);
   });
 
+  it('L1 查 mood——它才是被逐字编进正向提示词的那个字段', () => {
+    const s = spec();
+    // 实测教训：动态摄影海报把「文人书卷气」写进 mood，生成结果满屏是书。
+    // style_dna 压根不进 text2img，只查它等于没查。
+    s.content.keywords = ['书本'];
+    s.mood = ['安静', '书本般的沉静气质'];
+    const findings = lintSpec(s);
+    expect(findings.some((f) => f.rule === 'L1' && f.where === 'mood[1]')).toBe(true);
+  });
+
+  it('L1 查 composition.grid——自由文本原样进提示词', () => {
+    const s = spec();
+    s.content.keywords = ['体重秤'];
+    s.composition.grid = '体重秤与底部大字之间留一条横带';
+    expect(lintSpec(s).some((f) => f.rule === 'L1' && f.where === 'composition.grid')).toBe(true);
+  });
+
+  it('L1 放行给人看的记录字段——它们刻意不编译', () => {
+    const s = spec();
+    s.content.keywords = ['体重秤'];
+    s.composition.visual_flow = '视线从体重秤跳到右下角小字';
+    s.typography.note = '体重秤上方压着标题';
+    s.notes = '体重秤是这张图的主体';
+    expect(lintSpec(s).filter((f) => f.rule === 'L1')).toEqual([]);
+  });
+
   it('L1 不对单字中文词误报', () => {
     const s = spec();
     s.content.keywords = ['马']; // 单字太容易误伤，应被跳过
@@ -289,14 +315,15 @@ describe('风格迁移测试', () => {
     expect(r.passed).toBe(true);
   });
 
-  it('抓出藏在自由文本字段里的泄漏（L1 查不到的那一类）', () => {
+  it('抓出藏在自由文本字段里的泄漏', () => {
     const s = spec();
     // material.surfaces[].where 会被编进提示词，写成原图的具体物件就会跟着换主体一起跑出来
     s.material.surfaces = [{ where: '奔马剪影', finish: 'matte', detail: '纯平涂' }];
     const r = runTransferTest(s);
     expect(r.passed).toBe(false);
     expect(r.compiledLeaks.some((l) => l.term === '奔马')).toBe(true);
-    expect(r.dnaFindings).toEqual([]); // style_dna 本身是干净的，只有编译产物泄漏
+    // 同一个泄漏 L1 现在在 spec 层就能抓到，不必等编译；两层都报是冗余但不是错
+    expect(r.dnaFindings.some((f) => f.where === 'material.surfaces[0].where')).toBe(true);
   });
 });
 

@@ -86,6 +86,31 @@ public final class Settings {
         baseURL = defaults.string(forKey: "baseURL") ?? "https://api.anthropic.com"
         model = defaults.string(forKey: "model") ?? "claude-opus-5"
         apiKey = Keychain.get("apiKey") ?? ""
+
+        // 首次启动扫一遍本机装了哪个 agent，装了就直接用它。
+        //
+        // Mock 是兜底，不该是大多数人第一次打开时看到的东西：装过 Claude Code 或 Codex
+        // 的人零配置就能真的干活，什么都没装的人才落回 Mock——"不填任何东西也是完整可用
+        // 的产品"这条原则不变，只是把"可用"从假数据升级成真分析。
+        //
+        // 只跑一次，用单独的标记位记住。之后用户显式选了什么就是什么，包括显式选回 Mock。
+        // 不能用 providerID 有没有值来判断：register(defaults:) 注册的兜底值，
+        // object(forKey:) 一样读得到，区分不出"没设过"和"设成了 mock"。
+        if !defaults.bool(forKey: "engineAutoDetected") {
+            defaults.set(true, forKey: "engineAutoDetected")
+            if let found = Self.detectInstalledAgent() {
+                providerID = found
+                // init 里的赋值不触发 didSet，得自己落盘
+                defaults.set(found, forKey: "providerID")
+            }
+        }
+    }
+
+    /// 按内置预设的顺序找第一个真的装了的 agent。都找不到返回 nil，保持 Mock。
+    private static func detectInstalledAgent() -> String? {
+        AgentPreset.builtins.first { preset in
+            (try? AgentRunner.resolveExecutable(preset.executable)) != nil
+        }?.id
     }
 
     // MARK: - 组装引擎

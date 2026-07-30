@@ -169,6 +169,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         window.minSize = NSSize(width: 900, height: 620)
         // 记住你调过的尺寸和位置，下次按你的来，不再回到默认值
         window.setFrameAutosaveName("MainWindow")
+        // setFrameAutosaveName 会当场把上次存的 frame 还原回来，而 minSize 只在用户拖拽时
+        // 生效，不会校正读回来的值——一旦存过一个比下限还窄的尺寸（旧版本 minSize 更小时
+        // 留下的就是），之后每次打开都是那个窄窗口，上面按屏幕比例算的默认值根本没机会用上。
+        // 这里补一次下限，让 minSize 对恢复路径也算数。
+        let restored = window.frame
+        let floored = NSSize(
+            width: max(restored.width, window.minSize.width),
+            height: max(restored.height, window.minSize.height))
+        if floored != restored.size {
+            window.setFrame(NSRect(origin: restored.origin, size: floored), display: false)
+        }
         window.delegate = self
         mainWindow = window
         window.makeKeyAndOrderFront(nil)

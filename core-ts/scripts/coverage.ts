@@ -8,7 +8,7 @@ import {
 } from '../src/eval/coverage.js';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const PIC = '/Users/raymond7/Documents/再生图工具/pictext';
+const PIC = resolve(HERE, '../../pictext');
 const meta = JSON.parse(readFileSync(resolve(HERE, '../../evals/coverage/form-density.json'), 'utf8'));
 const files = readdirSync(PIC).filter((f) => /\.jpe?g$/i.test(f));
 

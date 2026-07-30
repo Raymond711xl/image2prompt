@@ -7,7 +7,7 @@ import { imageCoords } from '../src/analyze/coords.js';
 import { toPoint, kmeans, type CoverageInput } from '../src/eval/coverage.js';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const PIC = '/Users/raymond7/Documents/再生图工具/pictext';
+const PIC = resolve(HERE, '../../pictext');
 const OUT = process.argv[2];
 const meta = JSON.parse(readFileSync(resolve(HERE, '../../evals/coverage/form-density.json'), 'utf8'));
 const files = readdirSync(PIC).filter((f) => /\.jpe?g$/i.test(f));

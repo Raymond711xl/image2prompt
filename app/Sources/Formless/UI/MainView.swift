@@ -6,19 +6,26 @@ struct MainView: View {
     @Environment(AppState.self) private var state
 
     var body: some View {
-        NavigationSplitView {
-            QueueList()
-                .navigationSplitViewColumnWidth(min: 260, ideal: 300, max: 380)
-        } detail: {
-            if let selected = state.selected, let spec = selected.spec {
-                DetailView(
-                    item: selected, spec: spec,
-                    onBriefChanged: { state.queue.persistBrief(selected) })
-            } else {
-                EmptyDetail()
+        // 横幅用 VStack 而不是 .safeAreaInset：safeAreaInset 加在 NavigationSplitView 上
+        // 只会给详情栏让位，侧栏的 List 仍从窗口顶端起排，横幅就直接压在第一行上。
+        // VStack 是实打实占布局空间的，两栏一起往下推。
+        VStack(spacing: 0) {
+            EngineBanner()
+
+            NavigationSplitView {
+                QueueList()
+                    .navigationSplitViewColumnWidth(min: 260, ideal: 300, max: 380)
+            } detail: {
+                if let selected = state.selected, let spec = selected.spec {
+                    DetailView(
+                        item: selected, spec: spec,
+                        onBriefChanged: { state.queue.persistBrief(selected) })
+                } else {
+                    EmptyDetail()
+                }
             }
+            .toolbar { Toolbar() }
         }
-        .toolbar { Toolbar() }
         // 窗口本身也接受拖放，不只是菜单栏图标
         .onDrop(of: [.fileURL], isTargeted: nil) { providers in
             handleDrop(providers)
@@ -48,6 +55,44 @@ struct MainView: View {
             if !urls.isEmpty { state.queue.enqueue(urls) }
         }
         return true
+    }
+}
+
+// MARK: - 引擎横幅
+
+/// 引擎实际不能分析时，在主窗口顶部挑明。
+///
+/// 为什么必须有这一条：结果页渲染 Mock 和渲染真实分析长得一模一样——同样的风格 DNA、
+/// 同样的色板、同样的提示词卡片。不在主流程里说清楚，用户会把两份预置样本当成
+/// 自己那张图的分析结果，而且因为「跑得特别快」反而觉得工具很好用。
+/// 设置页里的 StatusCard 只有主动去看才看得到，这里补的是"不看也躲不开"。
+private struct EngineBanner: View {
+    @Environment(AppState.self) private var state
+
+    var body: some View {
+        let status = state.settings.engineStatus
+        if !status.canAnalyze {
+            HStack(spacing: 8) {
+                Image(systemName: status.symbol)
+                    .foregroundStyle(status.level == .broken ? Color.red : Color.orange)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("当前引擎「\(status.title)」不会真的分析你拖进来的图")
+                        .font(.system(size: 12, weight: .medium))
+                    if let detail = status.detail {
+                        Text(detail)
+                            .font(.system(size: 10))
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                    }
+                }
+                Spacer(minLength: 0)
+                Button("去设置") { state.onSettingsRequested?() }
+                    .controlSize(.small)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(.orange.opacity(0.12))
+        }
     }
 }
 

@@ -37,20 +37,46 @@ export function contentTerms(spec: StyleSpec): string[] {
 }
 
 /**
- * L1 内容泄漏：style_dna 不得包含内容层任何词条。
+ * 会被编译进提示词的自由文本字段。
+ *
+ * 判定标准只有一条：编译器真的读了它。改这张表前先去 compile/ 里确认——
+ * `visual_flow`、`negative_space.note`、`typography.note`、`notes` 是给人看的分析记录，
+ * 刻意不编译，所以不受 L1 约束，可以放心点名原图元素。
+ */
+function compiledFreeText(spec: StyleSpec): Array<[string, string | null | undefined]> {
+  const out: Array<[string, string | null | undefined]> = [
+    ['style_dna', spec.style_dna],
+    ['style_dna_en', spec.style_dna_en],
+    ['composition.grid', spec.composition.grid],
+    ['typography.safe_area', spec.typography.safe_area],
+    ['form_language.gap_rule', spec.form_language.gap_rule],
+    ['form_language.repetition', spec.form_language.repetition],
+  ];
+  spec.mood.forEach((m, i) => out.push([`mood[${i}]`, m]));
+  (spec.lighting.sources ?? []).forEach((s, i) => out.push([`lighting.sources[${i}]`, s]));
+  spec.material.surfaces.forEach((s, i) => {
+    out.push([`material.surfaces[${i}].where`, s.where]);
+    out.push([`material.surfaces[${i}].detail`, s.detail]);
+  });
+  return out;
+}
+
+/**
+ * L1 内容泄漏：任何会进提示词的自由文本字段都不得包含内容层词条。
  *
  * 这是模式 A 的核心价值。检验标准是「把任何新主体塞进去都成立」——
- * 一旦风格 DNA 里留着原图的具体物件，换主体复用就会把原图内容一起带出来。
+ * 一旦风格描述里留着原图的具体物件，换主体复用就会把原图内容一起带出来。
+ *
+ * 早期只查 `style_dna`，实测教训是漏得最狠的不是它：`style_dna` 压根不进 text2img
+ * （只有 `style_dna_en` 出现在垫图风格参考句里），而 `mood` 和 `composition.grid`
+ * 是被逐字编进正向提示词的。一张动态摄影海报把「文人书卷气」写进 mood，
+ * 生成结果满屏是书——真凶是 mood，查 style_dna 查不出来。
  */
 export function lintContentLeakage(spec: StyleSpec): Finding[] {
   const findings: Finding[] = [];
   const terms = contentTerms(spec);
-  const targets: Array<[string, string | null | undefined]> = [
-    ['style_dna', spec.style_dna],
-    ['style_dna_en', spec.style_dna_en],
-  ];
 
-  for (const [field, text] of targets) {
+  for (const [field, text] of compiledFreeText(spec)) {
     if (!text) continue;
     for (const term of terms) {
       if (contains(text, term)) {
@@ -58,7 +84,7 @@ export function lintContentLeakage(spec: StyleSpec): Finding[] {
           rule: 'L1',
           level: 'error',
           where: field,
-          message: `内容泄漏：${field} 中出现了内容层词条「${term}」。风格 DNA 必须与画面内容完全无关，换任何主体都成立。`,
+          message: `内容泄漏：${field} 中出现了内容层词条「${term}」。这个字段会被编进提示词，必须写成换任何主体都成立的抽象描述。`,
         });
       }
     }
