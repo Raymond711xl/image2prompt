@@ -51,19 +51,29 @@ final class StatusItemController: NSObject {
         }
 
         menu.delegate = self
-        // 刻意不设 statusItem.menu：拖放层盖在按钮上，点击到不了按钮，
-        // 系统那套"点按钮弹菜单"就不会触发。改成自己弹，行为完全可控。
+        // 平时不挂 statusItem.menu：拖放层盖在按钮上，点击到不了按钮，
+        // 系统那套"点按钮弹菜单"不会自己触发。只在真的要弹时临时挂上去，见 popUpMenu()。
     }
 
+    /// 弹菜单。位置交给系统算，不自己来。
+    ///
+    /// 曾经是手算锚点（`menu.popUp(at: (0, button.bounds.height + 5))`，即按钮底边下方 5pt）。
+    /// 外接屏上正好，带刘海的内建屏上会错位并长出滚动箭头，原因是：
+    ///
+    /// - 按钮高度恒为 22pt，**不随刘海变**；
+    /// - 但内建屏的菜单栏是 38pt 高（`safeAreaInsets.top` = 32），外接屏只有 25pt。
+    ///
+    /// 于是距按钮顶端 27pt 那个锚点，在外接屏上已经出了菜单栏，在内建屏上还埋在菜单栏里。
+    /// AppKit 不让菜单压住菜单栏，只好把它挪位并裁短——顶部那个 `^` 就是被裁短的证据，
+    /// 得再往上移一次才能看到第一项。把 5 调大只是换一块屏出错。
+    ///
+    /// 临时把菜单挂到 statusItem 上再 `performClick`，位置、屏幕边界、刘海、按钮高亮
+    /// 就全归系统管了，各块屏行为一致。`performClick` 会一直阻塞到菜单关闭。
     private func popUpMenu() {
         guard let button = statusItem.button else { return }
-        menuNeedsUpdate(menu)
-        button.highlight(true)
-        menu.popUp(
-            positioning: nil,
-            at: NSPoint(x: 0, y: button.bounds.height + 5),
-            in: button)
-        button.highlight(false)
+        statusItem.menu = menu
+        button.performClick(nil)
+        statusItem.menu = nil
     }
 
     /// 有图在跑时给图标换个样子，不用打开窗口也知道还在忙
