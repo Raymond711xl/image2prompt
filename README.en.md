@@ -1,3 +1,5 @@
+<img src="app/Resources/AppIcon.png" width="120" align="right" alt="Formless app icon">
+
 # Formless · 得意忘形
 
 [中文](README.md) · **English**

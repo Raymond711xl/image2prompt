@@ -46,12 +46,20 @@ for bundle in "${BIN_DIR}/${EXECUTABLE}_"*.bundle; do
 done
 [ "$found" = 1 ] || { echo "找不到 ${EXECUTABLE}_*.bundle —— 资源没进包，分析指令会读不到"; exit 1; }
 
+# 应用图标。源图和生成脚本都在仓库里，换图重跑 make-icon.swift 即可：
+#   swift Scripts/make-icon.swift
+ICON="Resources/AppIcon.icns"
+[ -f "$ICON" ] || { echo "找不到 ${ICON} —— 先跑：swift Scripts/make-icon.swift"; exit 1; }
+cp "$ICON" "$APP/Contents/Resources/AppIcon.icns"
+
 cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
     <key>CFBundleExecutable</key><string>${EXECUTABLE}</string>
+    <!-- 写文件名、不带扩展名，是 CFBundleIconFile 的老规矩 -->
+    <key>CFBundleIconFile</key><string>AppIcon</string>
     <key>CFBundleIdentifier</key><string>${BUNDLE_ID}</string>
     <key>CFBundleName</key><string>${APP_NAME}</string>
     <key>CFBundlePackageType</key><string>APPL</string>
@@ -77,6 +85,8 @@ if [ "$INSTALL" = "install" ]; then
     sleep 1
     rm -rf "$TARGET"
     cp -R "$APP" "$TARGET"
+    # 访达会缓存图标，同路径换了 bundle 也照旧显示旧图标。改一次修改时间就会重读。
+    touch "$TARGET"
     echo "已安装：$TARGET"
     echo "双击启动，或：open \"$TARGET\""
 else

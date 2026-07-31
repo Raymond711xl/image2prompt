@@ -39,9 +39,8 @@ final class StatusItemController: NSObject {
         super.init()
 
         if let button = statusItem.button {
-            button.image = NSImage(
-                systemSymbolName: "wand.and.stars", accessibilityDescription: "得意忘形")
-            button.image?.isTemplate = true
+            button.image = MenuBarIcon.idle()
+            button.image?.accessibilityDescription = "得意忘形"
 
             // 覆盖整个按钮的透明接收层。不改按钮外观，只负责收拖放。
             dropView.frame = button.bounds
@@ -70,9 +69,8 @@ final class StatusItemController: NSObject {
     /// 有图在跑时给图标换个样子，不用打开窗口也知道还在忙
     func setBusy(_ busy: Bool) {
         guard let button = statusItem.button else { return }
-        let name = busy ? "wand.and.stars.inverse" : "wand.and.stars"
-        button.image = NSImage(systemSymbolName: name, accessibilityDescription: "得意忘形")
-        button.image?.isTemplate = true
+        button.image = busy ? MenuBarIcon.busy() : MenuBarIcon.idle()
+        button.image?.accessibilityDescription = "得意忘形"
     }
 
     // MARK: - 菜单动作
