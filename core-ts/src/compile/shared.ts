@@ -108,6 +108,26 @@ export function compositionText(spec: StyleSpec, brief: Brief): string {
   ]);
 }
 
+/**
+ * 面板结构。panel_count > 1 时明确告诉生成模型这是多面板拼合画面，不要拍扁成一张连续场景——
+ * v0.1 时代最容易犯的错就是这个（作品页截图里的上下两张图被合并成一张）。
+ */
+export function panelText(spec: StyleSpec): string | null {
+  const c = spec.composition;
+  if (!c.panel_count || c.panel_count <= 1) return null;
+  const base = `画面由 ${c.panel_count} 个独立版块拼合而成，各版块保持独立边界，不要合并成一个连续场景`;
+  if (!c.panels?.length) return base;
+  const detail = c.panels.map((p, i) => `第${i + 1}块（${p.region}）：${p.role}`).join('；');
+  return `${base}——${detail}`;
+}
+
+/** 元素前后顺序（基础版，只给相对顺序，不给坐标）。 */
+export function stackingText(spec: StyleSpec): string | null {
+  const order = spec.composition.element_stacking;
+  if (!order?.length) return null;
+  return `画面元素前后顺序（从前到后）：${order.join(' → ')}`;
+}
+
 /** 文案安全区：Brief 显式指定优先，否则继承 StyleSpec 的 typography.safe_area。 */
 export function resolveSafeArea(spec: StyleSpec, brief: Brief): string | null {
   if (brief.copy_safe_area && brief.copy_safe_area !== 'none') {

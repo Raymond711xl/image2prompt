@@ -31,7 +31,7 @@ func bundledFixturesMatchCoreTS() throws {
 func mockReturnsValidSpec() async throws {
     let provider = MockVisionProvider(delayRange: 0.01...0.02)
     let spec = try await provider.analyze(imageURL: URL(fileURLWithPath: "/tmp/foo.jpg"))
-    #expect(spec.schemaVersion == "0.1")
+    #expect(spec.schemaVersion == "0.2")
     #expect(spec.styleDna.isEmpty == false)
 }
 

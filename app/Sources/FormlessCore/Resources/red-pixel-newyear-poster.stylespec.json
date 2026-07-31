@@ -1,11 +1,14 @@
 {
-  "schema_version": "0.1",
+  "schema_version": "0.2",
   "source": {
     "path": "/Users/raymond7/Desktop/AD-广告方案/项目完成/京东健康/使用图片/【审美分享】红色系海报真太有冲击力了🔥_3_Peet 的设计日常_来自小红书网页版.jpg",
     "url": null,
     "analyzed_at": "2026-07-28T13:00:00+08:00",
     "analyzer": "claude-opus-5 / Claude Code native vision（色板由 ffmpeg 降采样后实测取色）",
-    "temporary": false
+    "temporary": false,
+    "width": 1080,
+    "height": 1440,
+    "aspect_exact": 0.75
   },
   "ad_type": "mood_poster",
   "medium": "typography_poster",
@@ -31,16 +34,18 @@
     "scene": "无场景，纯平涂正红色背景",
     "brand_marks": [],
     "on_image_text": [
-      { "text": "HAPPY", "position": "画面顶部满宽", "role": "title" },
-      { "text": "NEW", "position": "画面中部，压在图形之上", "role": "title" },
-      { "text": "YEAR", "position": "画面底部满宽", "role": "title" },
-      { "text": "HAPPY", "position": "画面左下角，竖排", "role": "tag" },
-      { "text": "HORSE", "position": "画面右下角，竖排", "role": "tag" },
-      { "text": "· 2026 ·", "position": "画面下部居中", "role": "subtitle" },
-      { "text": "<马年大吉>", "position": "2026 下方居中", "role": "subtitle" },
-      { "text": "WISHING YOU A JOYFUL AND SPIRITED YEAR OF THE HORSE! MAY ITS ENERGY AND STRENGTH CARRY YOU FORWARD TO SUCCESS, PROSPERITY, AND NEW VICTORIES.", "position": "中文副标题下方居中，两行", "role": "body" }
+      { "text": "HAPPY", "position": "画面顶部满宽", "role": "title", "layer": "front", "ocr_status": "exact", "relative_size": "largest", "color": "#FED4AB" },
+      { "text": "NEW", "position": "画面中部，压在图形之上", "role": "title", "layer": "front", "ocr_status": "exact", "relative_size": "largest", "color": "#010101" },
+      { "text": "YEAR", "position": "画面底部满宽", "role": "title", "layer": "front", "ocr_status": "exact", "relative_size": "largest", "color": "#FED4AB" },
+      { "text": "HAPPY", "position": "画面左下角，竖排", "role": "tag", "layer": "middle", "ocr_status": "exact", "relative_size": "smallest", "color": "#FED4AB" },
+      { "text": "HORSE", "position": "画面右下角，竖排", "role": "tag", "layer": "middle", "ocr_status": "exact", "relative_size": "smallest", "color": "#FED4AB" },
+      { "text": "· 2026 ·", "position": "画面下部居中", "role": "subtitle", "layer": "middle", "ocr_status": "exact", "relative_size": "small", "color": "#FED4AB" },
+      { "text": "<马年大吉>", "position": "2026 下方居中", "role": "subtitle", "layer": "middle", "ocr_status": "exact", "relative_size": "medium", "color": "#FED4AB" },
+      { "text": "WISHING YOU A JOYFUL AND SPIRITED YEAR OF THE HORSE! MAY ITS ENERGY AND STRENGTH CARRY YOU FORWARD TO SUCCESS, PROSPERITY, AND NEW VICTORIES.", "position": "中文副标题下方居中，两行", "role": "body", "layer": "middle", "ocr_status": "exact", "relative_size": "smallest", "color": "#FED4AB", "line_breaks": ["WISHING YOU A JOYFUL AND SPIRITED YEAR OF THE HORSE! MAY ITS ENERGY AND STRENGTH CARRY YOU FORWARD TO", "SUCCESS, PROSPERITY, AND NEW VICTORIES."] }
     ],
-    "keywords": ["奔马", "马年", "horse", "生肖", "2026", "马年大吉", "新年", "春节"]
+    "keywords": ["奔马", "马年", "horse", "生肖", "2026", "马年大吉", "新年", "春节"],
+    "carrier_type": { "value": "flat_design", "confidence": 0.92 },
+    "visible_only": true
   },
   "composition": {
     "shot": "medium",
@@ -58,7 +63,9 @@
     "bleed": true,
     "layers": 2,
     "symmetry": "symmetric",
-    "visual_flow": "顶部大字入画 → 沿中央主图形下行 → 落到中下部小字组 → 底部大字收尾"
+    "visual_flow": "顶部大字入画 → 沿中央主图形下行 → 落到中下部小字组 → 底部大字收尾",
+    "panel_count": 1,
+    "element_stacking": ["顶部/底部标题文字组", "主图形", "下部小字与副标题文字组"]
   },
   "palette": [
     { "hex": "#FF2424", "ratio": 0.74, "role": "base", "name_cn": "高饱和正红" },

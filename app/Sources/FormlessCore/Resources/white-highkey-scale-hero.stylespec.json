@@ -1,11 +1,14 @@
 {
-  "schema_version": "0.1",
+  "schema_version": "0.2",
   "source": {
     "path": "/Users/raymond7/Desktop/AD-广告方案/项目完成/京东健康/使用图片/Nothing CMF 体重秤_1_西米鱼_来自小红书网页版.jpg",
     "url": null,
     "analyzed_at": "2026-07-28T13:12:00+08:00",
     "analyzer": "claude-opus-5 / Claude Code native vision（色板由 ffmpeg 降采样后实测取色）",
-    "temporary": false
+    "temporary": false,
+    "width": 1080,
+    "height": 1440,
+    "aspect_exact": 0.75
   },
   "ad_type": "hero_shot",
   "medium": "3d_render",
@@ -31,10 +34,12 @@
     "scene": "无场景，近白色纯色空场，主体下方一圈极淡的柔和落影",
     "brand_marks": [],
     "on_image_text": [
-      { "text": "56.80", "position": "主体上部居中，点阵 LED 显示", "role": "other" },
-      { "text": "来 自 西 米 鱼", "position": "画面底部居中，字距极宽", "role": "other" }
+      { "text": "56.80", "position": "主体上部居中，点阵 LED 显示", "role": "other", "layer": "front", "ocr_status": "exact", "relative_size": "medium", "color": "#010101" },
+      { "text": "来 自 西 米 鱼", "position": "画面底部居中，字距极宽", "role": "other", "layer": "middle", "ocr_status": "exact", "relative_size": "smallest", "color": "#8A8A8A" }
     ],
-    "keywords": ["体重秤", "智能秤", "点阵显示", "薄荷绿按键", "56.80", "来自西米鱼"]
+    "keywords": ["体重秤", "智能秤", "点阵显示", "薄荷绿按键", "56.80", "来自西米鱼"],
+    "carrier_type": { "value": "flat_design", "confidence": 0.8 },
+    "visible_only": true
   },
   "composition": {
     "shot": "medium",
@@ -52,7 +57,9 @@
     "bleed": false,
     "layers": 2,
     "symmetry": "symmetric",
-    "visual_flow": "视线直接落在居中主体，再向下扫到底部一行小字"
+    "visual_flow": "视线直接落在居中主体，再向下扫到底部一行小字",
+    "panel_count": 1,
+    "element_stacking": ["居中主体", "底部落款小字"]
   },
   "palette": [
     { "hex": "#FBFBFB", "ratio": 0.9, "role": "base", "name_cn": "近白" },

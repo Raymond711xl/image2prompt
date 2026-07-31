@@ -121,6 +121,25 @@ enum CompileShared {
         ])
     }
 
+    /// 面板结构。panelCount > 1 时明确告诉生成模型这是多面板拼合画面，不要拍扁成一张连续场景——
+    /// v0.1 时代最容易犯的错就是这个（作品页截图里的上下两张图被合并成一张）。
+    static func panelText(_ spec: StyleSpec) -> String? {
+        let c = spec.composition
+        guard c.panelCount > 1 else { return nil }
+        let base = "画面由 \(c.panelCount) 个独立版块拼合而成，各版块保持独立边界，不要合并成一个连续场景"
+        guard let panels = c.panels, !panels.isEmpty else { return base }
+        let detail = panels.enumerated()
+            .map { i, p in "第\(i + 1)块（\(p.region)）：\(p.role)" }
+            .joined(separator: "；")
+        return "\(base)——\(detail)"
+    }
+
+    /// 元素前后顺序（基础版，只给相对顺序，不给坐标）。
+    static func stackingText(_ spec: StyleSpec) -> String? {
+        guard let order = spec.composition.elementStacking, !order.isEmpty else { return nil }
+        return "画面元素前后顺序（从前到后）：\(order.joined(separator: " → "))"
+    }
+
     /// 文案安全区：Brief 显式指定优先，否则继承 StyleSpec 的 typography.safe_area。
     static func resolveSafeArea(_ spec: StyleSpec, _ brief: Brief) -> String? {
         if let area = brief.copySafeArea, !area.isEmpty, area != "none" {

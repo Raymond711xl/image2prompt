@@ -19,9 +19,9 @@ public enum AnalyzePrompt {
 
     /// schema 随 .app 一起分发，agent 用得到的是这个真实磁盘路径
     public static func schemaURL() throws -> URL {
-        guard let url = Bundle.module.url(forResource: "stylespec.v0.1", withExtension: "json")
+        guard let url = Bundle.module.url(forResource: "stylespec.v0.2", withExtension: "json")
         else {
-            throw PromptError.missingResource("stylespec.v0.1.json")
+            throw PromptError.missingResource("stylespec.v0.2.json")
         }
         return url
     }

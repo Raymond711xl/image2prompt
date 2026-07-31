@@ -22,7 +22,7 @@ private func loadFixture(_ name: String) throws -> StyleSpec {
 func decodeRedPixelPoster() throws {
     let spec = try loadFixture("red-pixel-newyear-poster.stylespec.json")
 
-    #expect(spec.schemaVersion == "0.1")
+    #expect(spec.schemaVersion == "0.2")
     #expect(spec.palette.isEmpty == false)
     #expect(spec.styleDna.isEmpty == false)
 
@@ -37,7 +37,7 @@ func decodeRedPixelPoster() throws {
 func decodeWhiteHighKeyHero() throws {
     let spec = try loadFixture("white-highkey-scale-hero.stylespec.json")
 
-    #expect(spec.schemaVersion == "0.1")
+    #expect(spec.schemaVersion == "0.2")
     #expect(spec.styleDna.isEmpty == false)
     #expect(spec.confidence.overall > 0)
 }

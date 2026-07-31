@@ -1,4 +1,4 @@
-# 任务：把参考图分析成 StyleSpec v0.1
+# 任务：把参考图分析成 StyleSpec v0.2
 
 ## 图片
 
@@ -100,8 +100,15 @@ style_dna 里正常的风格描述被误判成内容泄漏。keywords 里只该�
 ### 6. 自由文本字段不要点名原图的具体元素
 
 会被编进提示词的自由文本字段（`composition.grid`、`form_language.gap_rule` /
-`repetition`、`lighting.sources`、`material.surfaces[].where`、`mood`）必须写成
+`repetition`、`lighting.sources`、`material.surfaces[].where`、`mood`、
+`composition.element_stacking`、`composition.panels[].role`）必须写成
 **换个主体照样成立**的抽象规则。
+
+`element_stacking` 尤其容易犯错——它是这轮新加的字段，写的时候很自然会直接点名
+"像素马图形""体重秤主体"这类原图具体物件，但这跟 `grid` 不能写"底部大字"是同一个坑：
+
+- ✗ `element_stacking: ["顶部大字标题", "中央像素马图形", "下部小字"]` — "像素马图形"是原图内容
+- ✓ `element_stacking: ["标题文字组", "主图形", "小字组"]` — 角色描述，换主体照样成立
 
 - ✗ `grid: "主图形与底部大字之间留一条横带"` — "底部大字"是原图内容，换主体后是噪音
 - ✓ `grid: "四边贴边满宽单栏 + 居中对称轴"`
@@ -121,16 +128,18 @@ mood 是被逐字编进正向提示词的——它比 style_dna 更靠近生成�
 以下字段是给人看的分析记录，**不会**进入编译产物，可以放心点名原图元素：
 `composition.visual_flow`、`negative_space.note`、`typography.note`、`notes`。
 
-### 7. 运动和排版方向：schema 还没有它们的家
+### 7. 运动：schema 还没有它的家
 
-v0.1 没有 motion 块，也没有排版方向字段。遇到这两类特征，按下面临时安置，不要硬塞进
-`material` 或 `form_language`——那两块有各自的编译语义，塞错会串味：
+v0.2 仍然没有 motion 块（已知缺口，等实测工具再补，不是靠模型眼估）。拖影、长曝、频闪
+遇到时按下面临时安置，不要硬塞进 `material` 或 `form_language`——那两块有各自的编译语义，
+塞错会串味：
 
-- 拖影、长曝、频闪 → 写进 `style_family`（如「长曝光动态摄影 / long-exposure motion
-  photography」，它会被编在提示词最前面），角度和强度写进 `notes`。
+- 写进 `style_family`（如「长曝光动态摄影 / long-exposure motion photography」，
+  它会被编在提示词最前面），角度和强度写进 `notes`。
   角度靠眼估很容易夸大：看着像斜的，实测常常只偏离水平 10 度左右，写"斜向"会让模型转到 45 度。
   说不准就只写"近水平的方向性拖影"。
-- 横排拉丁 + 竖排中文混排 → 写进 `typography.note`（不进提示词，但是分析记录的一部分）。
+
+排版方向（横排拉丁 + 竖排中文混排这类）现在有地方写了，见第 10 节。
 
 ### 8. 不确定就标出来
 
@@ -142,15 +151,71 @@ v0.1 没有 motion 块，也没有排版方向字段。遇到这两类特征，�
 - `source.path` 填上面那个图片路径
 - `source.analyzed_at` 填当前时间，ISO 8601 带时区（如 `2026-07-29T01:20:00+08:00`）
 - `source.analyzer` 填你自己的标识（如 `claude-code` / `codex`）
+- `source.width` / `source.height`：真实像素尺寸，**用工具量，不要目测**（比如 macOS 的
+  `sips -g pixelWidth -g pixelHeight "<路径>"`，或任何你能调用的图像信息工具）
+- `source.aspect_exact`：`width / height` 的精确值
+
+### 10. v0.2 新增字段
+
+这轮新增的字段专治"肉眼一眼就能看出错，但 v0.1 没地方写"的几类问题。逐条说明：
+
+**`content.on_image_text[]` 的新字段 —— 排版不只是文字内容**
+
+每一段文字除了 `text`/`position`/`role`，都要补：
+
+- `ocr_status`：`exact`=看得清能原样照抄；`approx`=大意对但个别字不确定；
+  `unclear`=认不出具体文字，**这段绝不能编造成正文**，只描述字形和位置。这条是硬性的——
+  编不出来的字硬编成文案，比留空更糟。
+- `line_breaks`：这段文字实际怎么分行，按视觉顺序列出每一行。只有一行不用写。
+  不要把画面上明明分成几行的字，在 JSON 里拼成一整句字符串——断行方式本身就是版式的一部分。
+- `layer`：`front`/`middle`/`back`，这段字和画面其他元素比大致谁前谁后，不用精确坐标。
+- `color`：这段字的颜色，优先给 hex（尽量能对上 `palette` 里的某个色），取不准写简短描述。
+- `relative_size`：`largest`/`large`/`medium`/`small`/`smallest`，这段字相对画面里
+  其他文字的大小级别，不是像素字号，是用来还原"哪段字最大、哪段最小"这个层级关系的。
+- `distortion`：文字有没有被变形——沿路径弯曲、透视斜切、旋转、拉伸、描边分层立体字，
+  平直无变形写 `none`（默认）。
+- `typeface_note`：只有这段字的字体明显不同于 `typography.typeface_class` 整体判断时才填
+  （比如正文是无衬线，但这个标题是手写花体或定制美术字）。
+
+**`typography.implicit_alignment` —— 多段文字之间的隐形关系**
+
+这些文字块靠什么互相咬合成一个整体：共用同一条左对齐线、顶边对齐、行距和字块间距保持统一
+比例。写成可迁移的抽象规则（参考第 6 条的写法），不点名具体文案内容。
+
+**`content.carrier_type` —— 这张图到底是什么载体**
+
+判断这是 `flat_design`（平面设计原图本身）、`print_on_object`（印在书/T恤/杯子等物体上
+被拍下来的照片）、`screenshot`（界面或作品页截图）、`photo_scene`（实景照片）还是
+`unknown`（判断不了）。**判断不准就老实给低 confidence，并在 `candidates` 里列出备选**，
+不要为了让字段"看起来确定"就瞎选一个锁死——载体判断错了，后面整个复现方向都会偏。
+
+**`composition.panel_count` / `panels` —— 会不会其实是好几块拼的**
+
+单张设计图写 `panel_count: 1`，不用填 `panels`。如果画面其实是作品页截图里的上下两张图、
+杂志跨页、多宫格拼贴，`panel_count` 填实际块数，`panels` 逐块记大致区域和角色。
+**多面板的图千万不要当成一整张来分析**——那正是 v0.1 最容易犯的错。
+
+**`content.visible_only` / `external_expansion_risk` —— 禁止脑补**
+
+默认 `visible_only: true`：只描述画面里实际可见的内容。如果画面里出现品牌名、IP、知名
+作品这类容易触发你自己常识联想的词，把它们列进 `external_expansion_risk`——这是提醒
+编译层"这里容易被模型自己脑补出画面之外的内容，需要加约束"，不是让你去联想着写更多细节。
+
+**`composition.element_stacking` —— 谁挡谁（基础版）**
+
+画面主要元素按前后顺序列出（从最前到最后的字符串数组），只要相对顺序，不用坐标。
+只在确实存在遮挡/层叠关系时才有意义，元素本来就互不重叠可以不填。
 
 ## 最后再检查一遍
 
-1. `schema_version` 是 `"0.1"`
+1. `schema_version` 是 `"0.2"`
 2. 所有枚举值都在 schema 允许的取值里
 3. **`content.keywords` 里每个词都过一遍"换成咖啡机还成立吗"**——成立的删掉，它是风格不是内容
 4. `style_dna` 和 `style_dna_en` 里没有出现 `content.keywords` 中的任何词
 5. 几何形态判定与 `style_dna` 用词不冲突
-6. 输出是**纯 JSON**，没有围栏、没有前后缀文字
+6. `source.width`/`height` 是量出来的，不是估的；`content.on_image_text[]` 每一段都有 `ocr_status`
+7. `content.carrier_type.confidence` 低的话，`candidates` 不能是空的
+8. 输出是**纯 JSON**，没有围栏、没有前后缀文字
 
 第 3、4 条是同一个检查的两半：先把 keywords 收干净，再拿收干净的 keywords 去查 style_dna。
 顺序反了会误删风格描述。

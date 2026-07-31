@@ -47,6 +47,8 @@ enum JimengAdapter {
             S.materialText(spec),
             S.formText(spec),
             S.compositionText(spec, brief),
+            S.panelText(spec),
+            S.stackingText(spec),
             S.copyText(brief, spec),
             spec.mood.joined(separator: "、") + "氛围",
         ]

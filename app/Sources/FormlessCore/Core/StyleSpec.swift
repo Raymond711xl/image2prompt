@@ -1,6 +1,6 @@
 import Foundation
 
-// StyleSpec v0.1 的 Swift 映射。权威定义在仓库根 schema/stylespec.v0.1.json。
+// StyleSpec v0.2 的 Swift 映射。权威定义在仓库根 schema/stylespec.v0.2.json。
 //
 // 这里不做 JSON Schema 运行时校验：Codable 解码失败即非法输入，类型系统就是 schema。
 // TypeScript 侧需要 ajv 是因为 TS 类型在运行时会被擦除，Swift 不会。
@@ -120,6 +120,41 @@ public enum StyleFamilyRole: String, Codable, Sendable {
     case primary, borrowed
 }
 
+/// v0.2 新增：这段文字能不能确定原样照抄。unclear 时编译层不得当 literal text 处理。
+public enum OcrStatus: String, Codable, Sendable, CaseIterable {
+    case exact, approx, unclear
+}
+
+/// v0.2 新增：文字和画面其他元素相比大致的前后关系，不做精确 z-index。
+public enum TextLayer: String, Codable, Sendable, CaseIterable {
+    case front, middle, back
+}
+
+/// v0.2 新增：文字是否被变形处理。
+public enum TextDistortion: String, Codable, Sendable, CaseIterable {
+    case none
+    case curvedPath = "curved_path"
+    case perspectiveSkew = "perspective_skew"
+    case rotated
+    case stretched
+    case outlinedLayered = "outlined_layered"
+    case other
+}
+
+/// v0.2 新增：相对画面里其他文字的大小级别，不是像素字号。
+public enum RelativeSize: String, Codable, Sendable, CaseIterable {
+    case largest, large, medium, small, smallest
+}
+
+/// v0.2 新增：载体判断——这是完整平面设计图，还是印在物体上的照片、截图、实景照片。
+public enum CarrierTypeValue: String, Codable, Sendable, CaseIterable {
+    case flatDesign = "flat_design"
+    case printOnObject = "print_on_object"
+    case screenshot
+    case photoScene = "photo_scene"
+    case unknown
+}
+
 // MARK: - 组合类型
 
 public struct StyleFamily: Codable, Sendable, Hashable {
@@ -142,11 +177,17 @@ public struct SourceInfo: Codable, Sendable, Hashable {
     public let analyzedAt: String
     public let analyzer: String
     public let temporary: Bool?
+    /// v0.2 新增：像素宽高，直接读文件，不由分析模型猜测。
+    public let width: Int
+    public let height: Int
+    /// v0.2 新增：width/height 精确值，composition.aspectRatio 仍保留做类别展示。
+    public let aspectExact: Double
 
     enum CodingKeys: String, CodingKey {
         case path, url
         case analyzedAt = "analyzed_at"
-        case analyzer, temporary
+        case analyzer, temporary, width, height
+        case aspectExact = "aspect_exact"
     }
 }
 
@@ -154,6 +195,37 @@ public struct OnImageText: Codable, Sendable, Hashable {
     public let text: String
     public let position: String
     public let role: String?
+    /// v0.2 新增
+    public let layer: TextLayer?
+    /// v0.2 新增：exact/approx/unclear。unclear 时编译层不得当 literal text。
+    public let ocrStatus: OcrStatus
+    /// v0.2 新增：实际分行方式，按视觉顺序列出每一行。
+    public let lineBreaks: [String]?
+    /// v0.2 新增：这段文字的颜色，优先 hex。
+    public let color: String?
+    /// v0.2 新增：相对画面里其他文字的大小级别。
+    public let relativeSize: RelativeSize?
+    /// v0.2 新增
+    public let distortion: TextDistortion?
+    /// v0.2 新增：只有明显不同于 typography.typefaceClass 时才填。
+    public let typefaceNote: String?
+
+    enum CodingKeys: String, CodingKey {
+        case text, position, role, layer
+        case ocrStatus = "ocr_status"
+        case lineBreaks = "line_breaks"
+        case color
+        case relativeSize = "relative_size"
+        case distortion
+        case typefaceNote = "typeface_note"
+    }
+}
+
+/// v0.2 新增：载体判断，confidence 低时保留候选，不擅自定死成一种。
+public struct CarrierType: Codable, Sendable, Hashable {
+    public let value: CarrierTypeValue
+    public let confidence: Double
+    public let candidates: [String]?
 }
 
 /// 内容层隔离区。**本块内容禁止出现在 style_dna 中**——这条隔离是整个产品成立的前提。
@@ -164,12 +236,21 @@ public struct ContentLayer: Codable, Sendable, Hashable {
     public let brandMarks: [String]
     public let onImageText: [OnImageText]
     public let keywords: [String]
+    /// v0.2 新增
+    public let carrierType: CarrierType
+    /// v0.2 新增：默认 true——只描述画面里实际可见的内容，不得用品牌/IP 常识补全画面外的内容。
+    public let visibleOnly: Bool?
+    /// v0.2 新增：容易触发生成模型自身常识联想的品牌/IP/知名作品名称。
+    public let externalExpansionRisk: [String]?
 
     enum CodingKeys: String, CodingKey {
         case subject, scene
         case brandMarks = "brand_marks"
         case onImageText = "on_image_text"
         case keywords
+        case carrierType = "carrier_type"
+        case visibleOnly = "visible_only"
+        case externalExpansionRisk = "external_expansion_risk"
     }
 }
 
@@ -177,6 +258,12 @@ public struct NegativeSpace: Codable, Sendable, Hashable {
     public let region: String
     public let ratio: Double
     public let note: String?
+}
+
+/// v0.2 新增：只有 panelCount > 1 时才有意义的一块版面。
+public struct Panel: Codable, Sendable, Hashable {
+    public let region: String
+    public let role: String
 }
 
 public struct Composition: Codable, Sendable, Hashable {
@@ -192,6 +279,12 @@ public struct Composition: Codable, Sendable, Hashable {
     public let layers: Int?
     public let symmetry: Symmetry?
     public let visualFlow: String?
+    /// v0.2 新增：画面实际是几个独立版块拼成的，单张设计图为 1。
+    public let panelCount: Int
+    /// v0.2 新增：只有 panelCount > 1 时才有值。
+    public let panels: [Panel]?
+    /// v0.2 新增：主要元素按前后顺序列出（从最前到最后），只要相对顺序。
+    public let elementStacking: [String]?
 
     enum CodingKeys: String, CodingKey {
         case shot, angle
@@ -201,6 +294,9 @@ public struct Composition: Codable, Sendable, Hashable {
         case negativeSpace = "negative_space"
         case grid, density, bleed, layers, symmetry
         case visualFlow = "visual_flow"
+        case panelCount = "panel_count"
+        case panels
+        case elementStacking = "element_stacking"
     }
 }
 
@@ -293,6 +389,8 @@ public struct Typography: Codable, Sendable, Hashable {
     public let alignment: String?
     public let letterCase: String?
     public let safeArea: String?
+    /// v0.2 新增：多段文字靠什么隐形关系互相咬合（共用对齐线、顶边对齐、行距字块间距统一比例）。
+    public let implicitAlignment: String?
     public let note: String?
 
     enum CodingKeys: String, CodingKey {
@@ -303,6 +401,7 @@ public struct Typography: Codable, Sendable, Hashable {
         case alignment
         case letterCase = "case"
         case safeArea = "safe_area"
+        case implicitAlignment = "implicit_alignment"
         case note
     }
 }

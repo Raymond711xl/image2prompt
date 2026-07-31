@@ -102,6 +102,13 @@ Measured during A1: one full analysis takes about **2 min 30 s** on a local agen
 validation passed on the first try, and lint caught two content leaks (the analysis prompt has
 since been fixed). What remains is a ten-image run-through and wiring up the Anthropic API.
 
+`StyleSpec` is now at **0.2**: after a 28-image blind-reconstruction regression against Image 2,
+six field groups went into the schema on the strength of that evidence — exact canvas dimensions,
+text layout (line breaks, front/back layering, color, relative size, distortion, OCR
+confidence), carrier judgment, panel structure, an anti-hallucination flag, and a basic
+front-to-back element order. Both codebases and their test suites are in sync. Scope and
+trade-offs: [`docs/stylespec-v0.2-scope.md`](docs/stylespec-v0.2-scope.md) (in Chinese).
+
 Full roadmap, knob-panel design, and cost estimates: [`docs/roadmap.md`](docs/roadmap.md).
 Change-by-change history and the reasoning behind each: [`CHANGELOG.md`](CHANGELOG.md) (in Chinese).
 The eight known gaps in the analysis layer, with evidence and trigger conditions:
@@ -158,7 +165,7 @@ cd app && swift test          # 77 passed — swift-testing, no Xcode required
 ```
 
 ```bash
-cd core-ts && npm install && npm test    # 68 passed
+cd core-ts && npm install && npm test    # 71 passed
 ```
 
 Xcode is needed for exactly two things: SwiftUI live previews, and notarizing for distribution.

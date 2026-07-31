@@ -86,6 +86,11 @@ agent——调你机器上已经装好的 `claude` / `codex` CLI，用你已经�
 A1 实测：单张完整分析约 **2 分 30 秒**（本地 agent），schema 校验首次通过，
 lint 抓出 2 条内容泄漏并已修分析指令。剩下的是 10 张连跑的验收、以及 Anthropic API 接入。
 
+`StyleSpec` 目前是 **0.2** 版：28 张真图跑完 Image2 复现回归测试后，基于证据把精确画幅、
+文字版式（换行/层级/颜色/大小/变形/OCR 状态）、载体判断、面板结构、禁止脑补、前后遮挡关系
+六组字段补进了 schema，两侧代码和测试均已同步。定案范围和取舍见
+[`docs/stylespec-v0.2-scope.md`](docs/stylespec-v0.2-scope.md)。
+
 完整路线、十字轴设计、成本估算见 [`docs/roadmap.md`](docs/roadmap.md)；
 逐次改动和当时的判断见 [`CHANGELOG.md`](CHANGELOG.md)；
 分析层已知的 8 条缺口、证据和触发条件见 [`docs/analysis-gaps.md`](docs/analysis-gaps.md)。
@@ -139,7 +144,7 @@ cd app && swift test          # 77 passed，用 swift-testing，不依赖 Xcode
 ```
 
 ```bash
-cd core-ts && npm install && npm test    # 68 passed
+cd core-ts && npm install && npm test    # 71 passed
 ```
 
 Xcode 只在两种情况下需要：SwiftUI 实时预览、公证后分发给别人。

@@ -9,7 +9,7 @@ import Testing
 
 @Test("StyleSpec 版本号与仓库根 schema 对得上")
 func styleSpecVersionMatchesSchema() {
-    #expect(BuildInfo.styleSpecVersion == "0.1")
+    #expect(BuildInfo.styleSpecVersion == "0.2")
 }
 
 @Test("当前里程碑标记正确")

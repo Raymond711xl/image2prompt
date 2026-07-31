@@ -9,6 +9,46 @@ App 的版本号会在 A1 验收通过后才开始走。
 
 ## 未发布
 
+### 2026-07-31 · StyleSpec 0.2
+
+**变更**
+
+- **StyleSpec 从 0.1 升到 0.2**，新增 [`schema/stylespec.v0.2.json`](schema/stylespec.v0.2.json)
+  （v0.1 保留不删，已存数据不会被静默当成新版本误读）。依据是 28 张 Image2 复现回归测试的
+  真实证据——每张都过了 StyleSpec → 生成 → 对比 → 人工反馈的全链路，不是凭空扩字段。
+  定案范围和取舍见 [`docs/stylespec-v0.2-scope.md`](docs/stylespec-v0.2-scope.md)。
+
+  六个改造点，只挑了证据里高频、高杀伤力的那几条，其余明确挂账（文档里写了触发条件）：
+
+  - **精确画幅**：`source.width/height/aspect_exact` 直接读文件，不再让分析模型猜
+    "3:4" 这种四舍五入的类别值。
+  - **文字版式**（全表最高频问题，19/28 张图栽在这上面）：每段 `on_image_text` 加
+    `region/layer/ocr_status/line_breaks/color/relative_size/distortion/typeface_note`，
+    `typography` 加 `implicit_alignment`。专治"手写花体签名文字"这种认不出的字被当正文
+    照抄进提示词的 bug——`ocr_status=unclear` 的文字编译时不得再作为 literal text。
+  - **载体判断**：`content.carrier_type`，置信度低就留 `candidates`，不擅自锁死成一种
+    （之前"书籍推荐"这类图会被误判成完整立体商品样机）。
+  - **面板结构**：`composition.panel_count/panels`，作品页截图、杂志跨页这类多面板图
+    不再被编译时拍扁成一张连续场景。
+  - **禁止脑补**：`content.visible_only/external_expansion_risk`，专治品牌/IP 名字
+    触发生成模型自己的常识联想、画出画面之外内容的问题。
+  - **前后遮挡关系（基础版）**：`composition.element_stacking`，只给相对顺序不给坐标，
+    先解决"东西被合并/穿模"这一层。
+
+- **两侧代码同步实施，不是只停在文档**：core-ts 的 `analyze/prompt.ts`、
+  `compile/shared.ts`（新增 `panelText`/`stackingText`）+ 两个 adapter、`lint/rules.ts`
+  （新增 L7 结构一致性检查）、`validate.ts`；Swift 侧 `StyleSpec.swift` decode 模型、
+  `CompileShared.swift` + 两个 Adapter、`DetailView.swift` 新增"内容与文字"卡片、
+  `BuildInfo.swift` 版本号。两侧 fixture 与 golden 文件同步更新。
+  core-ts 71 个测试、Swift 77 个测试全部通过。
+
+**修复**
+
+- lint L1 内容泄漏检查漏了 `composition.element_stacking` 和 `panels[].role`——这两个
+  字段会被编进提示词，第一版随手写成"中央像素马图形"这种点名原图内容的写法，被跨主体
+  测试（transfer-test）当场抓到泄漏。已修：两个字段补进 L1 检查表，两侧分析指令也加了
+  "必须写成换主体也成立的抽象角色"的规则和反例。
+
 ### 2026-07-31 · 菜单栏菜单在带刘海的屏上错位
 
 **修复**

@@ -2,7 +2,7 @@ import type { Brief, CompiledPrompt, EditParts, StyleSpec } from '../../types.js
 import {
   join, pct, paletteText, colorText, lightingText, materialText, formText,
   compositionText, styleFamilyText, rewriteAvoid, qualityWords, refProtocol, copyText,
-  resolveSafeArea,
+  resolveSafeArea, panelText, stackingText,
 } from '../shared.js';
 import { SHOT_CN, ANGLE_CN, MEDIUM_CN, NEGATIVE_REGION_CN } from '../vocab.js';
 
@@ -94,6 +94,8 @@ function buildText2Img(spec: StyleSpec, brief: Brief, positives: string[], quali
     negative,
     c.grid,
     c.bleed ? '图形四边出血裁切' : null,
+    panelText(spec),
+    stackingText(spec),
     safeArea && !brief.render_text_in_image ? `${safeArea}保持干净，供后期叠加文字图层` : null,
     copyText(brief, spec),
     spec.mood.join('、') + '氛围',

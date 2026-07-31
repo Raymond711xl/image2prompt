@@ -1,0 +1,430 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/Raymond711xl/image2prompt/schema/stylespec.v0.2.json",
+  "title": "StyleSpec v0.2",
+  "description": "一张参考图的机器可读视觉规格。核心约束：content 块承载画面内容，style_dna 承载与内容无关的风格，两者不得互相污染。v0.2 相对 v0.1 的变化见 docs/stylespec-v0.2-scope.md：精确画幅、文字换行/层级/OCR状态、载体判断、面板结构、禁止脑补、元素前后顺序。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "source",
+    "ad_type",
+    "medium",
+    "style_family",
+    "content",
+    "composition",
+    "palette",
+    "color",
+    "lighting",
+    "material",
+    "form_language",
+    "typography",
+    "mood",
+    "style_dna",
+    "confidence"
+  ],
+  "properties": {
+    "schema_version": { "const": "0.2" },
+
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["analyzed_at", "analyzer", "width", "height", "aspect_exact"],
+      "properties": {
+        "path": { "type": ["string", "null"], "description": "本地绝对路径" },
+        "url": { "type": ["string", "null"], "description": "来源网址" },
+        "analyzed_at": { "type": "string", "format": "date-time" },
+        "analyzer": { "type": "string", "description": "如 claude-opus-5 / Claude Code native vision" },
+        "temporary": { "type": "boolean", "default": false, "description": "网上临时图，未沉淀进正式图库" },
+        "width": { "type": "integer", "minimum": 1, "description": "像素宽，直接读文件，不由分析模型猜测" },
+        "height": { "type": "integer", "minimum": 1, "description": "像素高，直接读文件，不由分析模型猜测" },
+        "aspect_exact": { "type": "number", "minimum": 0, "description": "width/height 精确值，用于锁编译时的画布，composition.aspect_ratio 仍保留做类别展示" }
+      }
+    },
+
+    "ad_type": {
+      "description": "references/ad-types.md 六分类",
+      "enum": ["hero_shot", "lifestyle", "mood_poster", "background", "promo_banner", "concept", "other"]
+    },
+
+    "medium": {
+      "enum": [
+        "photography",
+        "3d_render",
+        "vector_illustration",
+        "raster_illustration",
+        "graphic_design",
+        "typography_poster",
+        "collage",
+        "mixed_media",
+        "other"
+      ]
+    },
+    "medium_detail": { "type": "string", "description": "自由补充，如 editorial photography / C4D 商业渲染" },
+
+    "style_family": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 3,
+      "description": "最接近的 1-2 个流派。混合风格写「主体流派 + 借用元素」，不要硬塞进一个框。",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "name_en", "confidence", "evidence"],
+        "properties": {
+          "name": { "type": "string", "description": "中文流派名" },
+          "name_en": { "type": "string", "description": "英文术语，GPT Image 2 对英文风格术语响应更准" },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+          "evidence": { "type": "string", "description": "判断依据，指出画面上的具体证据" },
+          "role": { "enum": ["primary", "borrowed"], "default": "primary" }
+        }
+      }
+    },
+
+    "content": {
+      "type": "object",
+      "description": "内容层隔离区。本块所有内容禁止出现在 style_dna 中（lint L1 强制）。",
+      "additionalProperties": false,
+      "required": ["subject", "scene", "brand_marks", "on_image_text", "keywords", "carrier_type"],
+      "properties": {
+        "subject": { "type": "string", "description": "主体是什么、外观特征" },
+        "scene": { "type": "string", "description": "环境、背景元素、虚实" },
+        "brand_marks": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "画面中出现的品牌名与 logo 文字。参考图常是竞品或版权素材，这些绝不能进入生成提示词。"
+        },
+        "on_image_text": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["text", "position", "ocr_status"],
+            "properties": {
+              "text": { "type": "string" },
+              "position": { "type": "string" },
+              "role": { "enum": ["title", "subtitle", "body", "tag", "logo", "other"] },
+              "layer": {
+                "enum": ["front", "middle", "back"],
+                "description": "这段文字和画面其他元素相比大致的前后关系，不做精确 z-index"
+              },
+              "ocr_status": {
+                "enum": ["exact", "approx", "unclear"],
+                "description": "exact=看得清可以原样照抄；approx=大意对但个别字不确定；unclear=认不出具体文字，禁止编造，只能描述字形/位置，编译时不得作为 literal text"
+              },
+              "line_breaks": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "这段文字实际的分行方式，按视觉顺序列出每一行；只有一行就不用写。不要把可视的多行硬拼成一个字符串。"
+              },
+              "color": {
+                "type": "string",
+                "description": "这段文字的颜色，优先写 hex（能对应上 palette 里的某个色最好），实在取不准就写简短描述如「米白」"
+              },
+              "relative_size": {
+                "enum": ["largest", "large", "medium", "small", "smallest"],
+                "description": "这段文字相对画面里其他文字的大小级别，不是像素字号——用来在多段文字之间还原大小层级关系"
+              },
+              "distortion": {
+                "enum": ["none", "curved_path", "perspective_skew", "rotated", "stretched", "outlined_layered", "other"],
+                "default": "none",
+                "description": "文字是否被变形处理：沿路径弯曲、透视斜切、旋转、拉伸拉长、描边分层立体字等。平直无变形写 none。"
+              },
+              "typeface_note": {
+                "type": "string",
+                "description": "只有当这段文字的字体/字重/风格明显不同于 typography.typeface_class 整体判断时才填（比如正文是无衬线、但这个标题是手写花体或定制美术字）"
+              }
+            }
+          }
+        },
+        "keywords": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" },
+          "description": "内容层的所有具体名词（中英并列）。lint L1 据此逐个检查 style_dna 是否泄漏。写具体名词，不要写形容词。"
+        },
+        "carrier_type": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["value", "confidence"],
+          "properties": {
+            "value": {
+              "enum": ["flat_design", "print_on_object", "screenshot", "photo_scene", "unknown"],
+              "description": "flat_design=平面设计原图本身；print_on_object=印在书/T恤/杯子等物体上被拍下来的照片；screenshot=界面或作品页截图；photo_scene=实景照片；unknown=判断不了就诚实写这个，不要猜"
+            },
+            "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+            "candidates": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "confidence 较低时列出的备选判断，不要只保留一种、把不确定性丢掉"
+            }
+          }
+        },
+        "visible_only": {
+          "type": "boolean",
+          "default": true,
+          "description": "true=只描述画面里实际可见的内容，不得用品牌/IP 的常识去补全画面之外的内容"
+        },
+        "external_expansion_risk": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "画面里出现的、容易触发生成模型自身常识联想的品牌/IP/知名作品名称，列出来提醒编译层加约束"
+        }
+      }
+    },
+
+    "composition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["shot", "angle", "aspect_ratio", "subject_position", "subject_coverage", "negative_space", "density", "panel_count"],
+      "properties": {
+        "shot": { "enum": ["extreme_close_up", "close_up", "medium", "wide", "extreme_wide"] },
+        "angle": { "enum": ["eye_level", "low_angle", "high_angle", "top_down", "dutch"] },
+        "aspect_ratio": { "type": "string", "pattern": "^[0-9]+:[0-9]+$" },
+        "subject_position": {
+          "enum": [
+            "center", "left", "right", "top", "bottom",
+            "top_left", "top_right", "bottom_left", "bottom_right",
+            "lower_third", "upper_third", "none"
+          ]
+        },
+        "subject_coverage": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "主体占画面比例。用数值，「大面积」这类形容词无法编译成硬约束。"
+        },
+        "negative_space": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["region", "ratio"],
+          "properties": {
+            "region": {
+              "description": "留白的位置。用枚举而非自由文本——写成「主图形与底部大字之间」会把原图的具体元素带进提示词，换主体后就成了噪音。",
+              "enum": [
+                "top", "bottom", "left", "right", "center", "middle_band",
+                "top_left", "top_right", "bottom_left", "bottom_right",
+                "upper_third", "lower_third", "surrounding", "none"
+              ]
+            },
+            "ratio": { "type": "number", "minimum": 0, "maximum": 1 },
+            "note": { "type": "string", "description": "留白节奏、是否可排版。仅供人阅读，不进入编译产物。" }
+          }
+        },
+        "grid": {
+          "type": "string",
+          "description": "版面规则，写成可迁移的抽象描述（「四边贴边满宽单栏 + 居中对称轴」），不要点名原图的具体元素。"
+        },
+        "density": {
+          "enum": ["sparse", "low", "medium", "high", "saturated"],
+          "description": "密度即风格。「满版」太模糊，配合 bleed 和 subject_coverage 一起写死。"
+        },
+        "bleed": { "type": "boolean", "default": false, "description": "主体图形是否四边出血裁切" },
+        "layers": { "type": "integer", "minimum": 1, "description": "前中后层次数量" },
+        "symmetry": { "enum": ["symmetric", "asymmetric_balanced", "asymmetric_dynamic"] },
+        "visual_flow": {
+          "type": "string",
+          "description": "视觉动线从哪进从哪出。人读的分析记录，不进入编译产物——动线描述必然依附原图的具体元素，换主体后不成立。"
+        },
+        "panel_count": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1,
+          "description": "画面实际是几个独立版块拼成的（比如作品页截图里的上下两张图、杂志跨页）。单张设计图写 1。"
+        },
+        "panels": {
+          "type": "array",
+          "description": "只有 panel_count > 1 时才需要填，每个版块记大致区域和角色，避免多面板被编译时拍扁成一张图。",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["region", "role"],
+            "properties": {
+              "region": { "type": "string", "description": "这个版块大致在画面哪个位置，如「上方」「左侧」" },
+              "role": { "type": "string", "description": "这个版块是什么，如「作品页截图」「设计画面一」" }
+            }
+          }
+        },
+        "element_stacking": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "画面主要元素按前后顺序列出（从最前到最后），只要相对顺序，不用坐标。用来修复「东西谁挡谁」被编译时合并/穿模的问题。"
+        }
+      }
+    },
+
+    "palette": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["hex", "ratio", "role"],
+        "properties": {
+          "hex": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+          "ratio": { "type": "number", "minimum": 0, "maximum": 1 },
+          "role": { "enum": ["base", "secondary", "accent"] },
+          "name_cn": { "type": "string", "description": "如 低明度墨绿 / 高明度米白" }
+        }
+      }
+    },
+
+    "color": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["saturation", "temperature", "contrast"],
+      "properties": {
+        "saturation": { "enum": ["desaturated", "low", "medium", "high", "hyper"] },
+        "temperature": { "enum": ["cool", "neutral", "warm", "mixed"] },
+        "contrast": { "enum": ["flat", "low", "medium", "high", "extreme"] },
+        "harmony": { "enum": ["complementary", "analogous", "monochrome", "triadic", "split_complementary"] },
+        "brightness_key": { "enum": ["low_key", "mid_key", "high_key"] }
+      }
+    },
+
+    "lighting": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["direction", "quality", "contrast"],
+      "properties": {
+        "direction": { "enum": ["front", "side", "back", "top", "bottom", "ambient", "mixed"] },
+        "quality": { "enum": ["soft", "hard", "mixed"] },
+        "contrast": { "enum": ["flat", "low", "medium", "high", "dramatic"] },
+        "sources": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "如 柔光箱侧光 / 窗边自然光 / 黄昏逆光。一句到位的光线描述比三个画质词都管用。"
+        },
+        "time_of_day": { "type": ["string", "null"] },
+        "note": { "type": "string", "description": "高光和反射的具体位置" }
+      }
+    },
+
+    "material": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["surfaces"],
+      "properties": {
+        "surfaces": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["where", "finish"],
+            "properties": {
+              "where": { "type": "string", "description": "出现在哪个元素上" },
+              "finish": {
+                "enum": ["matte", "glossy", "metallic", "chrome", "glass", "fabric", "paper", "wood", "stone", "liquid", "translucent", "rubber", "ceramic"]
+              },
+              "detail": { "type": "string" }
+            }
+          }
+        },
+        "texture_overlay": {
+          "type": "array",
+          "items": { "enum": ["grain", "noise", "paper_grain", "halftone", "glitch", "scanline", "risograph", "none"] }
+        }
+      }
+    },
+
+    "form_language": {
+      "type": "object",
+      "description": "形态词避坑区。geometry 与 edge 用枚举而非自由文本——「液态膨胀」这类词单独使用会把生图模型推向有机泡泡形态，根源就是形态没被约束成离散值。",
+      "additionalProperties": false,
+      "required": ["geometry", "edge"],
+      "properties": {
+        "geometry": {
+          "enum": ["geometric_hard", "geometric_rounded", "organic_fluid", "organic_irregular", "angular_sharp", "mixed", "none"]
+        },
+        "edge": {
+          "enum": ["straight", "large_radius_rounded", "small_radius_rounded", "wavy", "irregular", "none"]
+        },
+        "corner_radius_note": { "type": "string", "description": "如 平直边缘 + 大半径圆角，饱满但硬朗" },
+        "stroke_weight": { "enum": ["hairline", "thin", "medium", "bold", "ultra_bold", "none"] },
+        "repetition": { "type": "string", "description": "图形是否重复构成节奏" },
+        "gap_rule": {
+          "type": "string",
+          "description": "负空间宽度规则，写成可执行比例。等宽窄沟槽和随意宽缝隙是两种设计。"
+        }
+      }
+    },
+
+    "typography": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["present"],
+      "properties": {
+        "present": { "type": "boolean" },
+        "typeface_class": {
+          "enum": ["grotesque_sans", "geometric_sans", "humanist_sans", "serif", "slab_serif", "display", "script", "calligraphy", "mono", "none"]
+        },
+        "weight_contrast": { "enum": ["none", "low", "medium", "extreme"] },
+        "size_hierarchy": { "type": "array", "items": { "type": "string" }, "description": "字号层级差，从大到小" },
+        "alignment": { "enum": ["grid", "centered", "left", "right", "justified", "free_scatter", "none"] },
+        "case": { "enum": ["upper", "lower", "mixed", "none"] },
+        "safe_area": { "type": "string", "description": "文案安全区在哪，可直接被 Brief 复用" },
+        "implicit_alignment": {
+          "type": "string",
+          "description": "多段文字之间靠什么隐形关系互相咬合，比如共用同一条左对齐线、顶边对齐、行距和字块间距保持统一比例。写成可迁移的抽象规则，不点名具体文案内容。"
+        },
+        "note": { "type": "string" }
+      }
+    },
+
+    "mood": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string" },
+      "description": "整体传达的感受，如 安静疏离 / 地下电子 / 慵懒惬意"
+    },
+
+    "use_cases": {
+      "type": "array",
+      "items": {
+        "enum": ["web_hero", "poster", "wechat_cover", "xhs_cover", "banner", "background", "ppt", "social_card"]
+      }
+    },
+
+    "style_dna": {
+      "type": "string",
+      "minLength": 40,
+      "description": "与画面内容完全无关、可套用任何主体的风格描述块。检验标准：把任何新主体塞进去都成立。这是模式 A 的核心交付，也是详情页唯一展示的 DNA 语言版本。"
+    },
+    "style_dna_en": {
+      "type": ["string", "null"],
+      "description": "英文版，只喂给生成模型（GPT Image 2 等），不在详情页展示，不需要和中文版逐句对齐维护。"
+    },
+
+    "content_leakage": {
+      "type": "array",
+      "description": "分析时自查发现的泄漏项。lint L1 会独立再查一遍，此字段是分析端的自我声明。",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["field", "phrase", "severity"],
+        "properties": {
+          "field": { "type": "string" },
+          "phrase": { "type": "string" },
+          "severity": { "enum": ["low", "medium", "high"] }
+        }
+      }
+    },
+
+    "confidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["overall", "uncertain_fields"],
+      "properties": {
+        "overall": { "type": "number", "minimum": 0, "maximum": 1 },
+        "uncertain_fields": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "一眼看不准的维度显式标出（点号路径，如 typography.typeface_class），不要含糊带过。"
+        }
+      }
+    },
+
+    "notes": { "type": "string" }
+  }
+}

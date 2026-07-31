@@ -16,7 +16,7 @@ ajv.addFormat('date-time', /^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(\.\d+)?([Zz]
 
 const loadSchema = (file: string) => JSON.parse(readFileSync(resolve(SCHEMA_DIR, file), 'utf8'));
 
-const validateStyleSpecFn = ajv.compile(loadSchema('stylespec.v0.1.json'));
+const validateStyleSpecFn = ajv.compile(loadSchema('stylespec.v0.2.json'));
 const validateBriefFn = ajv.compile(loadSchema('brief.v0.1.json'));
 
 export interface ValidationResult<T> {

@@ -140,7 +140,7 @@ func timesOut() async {
 func buildsAnalyzePrompt() throws {
     let prompt = try AnalyzePrompt.build(imageURL: URL(fileURLWithPath: "/tmp/demo.jpg"))
     #expect(prompt.contains("/tmp/demo.jpg"))
-    #expect(prompt.contains("stylespec.v0.1.json"))
+    #expect(prompt.contains("stylespec.v0.2.json"))
     #expect(prompt.contains("{{IMAGE_PATH}}") == false, "占位符没替换干净")
     #expect(prompt.contains("{{SCHEMA_PATH}}") == false, "占位符没替换干净")
 }

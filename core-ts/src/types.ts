@@ -22,14 +22,44 @@ export interface StyleFamily {
   role?: 'primary' | 'borrowed';
 }
 
+export type OcrStatus = 'exact' | 'approx' | 'unclear';
+export type TextLayer = 'front' | 'middle' | 'back';
+export type TextDistortion =
+  | 'none' | 'curved_path' | 'perspective_skew' | 'rotated' | 'stretched' | 'outlined_layered' | 'other';
+export type RelativeSize = 'largest' | 'large' | 'medium' | 'small' | 'smallest';
+export type CarrierType = 'flat_design' | 'print_on_object' | 'screenshot' | 'photo_scene' | 'unknown';
+
+export interface OnImageText {
+  text: string;
+  position: string;
+  role?: 'title' | 'subtitle' | 'body' | 'tag' | 'logo' | 'other';
+  layer?: TextLayer;
+  /** exact=原样照抄；approx=大意对个别字不确定；unclear=认不出，禁止编造，编译时不得作为 literal text */
+  ocr_status: OcrStatus;
+  /** 实际分行方式，按视觉顺序列出每一行；不要把可视的多行硬拼成一个字符串 */
+  line_breaks?: string[];
+  /** 这段文字的颜色，优先 hex */
+  color?: string;
+  /** 相对画面里其他文字的大小级别，不是像素字号 */
+  relative_size?: RelativeSize;
+  distortion?: TextDistortion;
+  /** 只有明显不同于 typography.typeface_class 时才填 */
+  typeface_note?: string;
+}
+
 export interface StyleSpec {
-  schema_version: '0.1';
+  schema_version: '0.2';
   source: {
     path?: string | null;
     url?: string | null;
     analyzed_at: string;
     analyzer: string;
     temporary?: boolean;
+    /** 像素宽高，直接读文件，不由分析模型猜测 */
+    width: number;
+    height: number;
+    /** width/height 精确值，composition.aspect_ratio 仍保留做类别展示 */
+    aspect_exact: number;
   };
   ad_type: AdType;
   medium: Medium;
@@ -40,8 +70,18 @@ export interface StyleSpec {
     subject: string;
     scene: string;
     brand_marks: string[];
-    on_image_text: Array<{ text: string; position: string; role?: string }>;
+    on_image_text: OnImageText[];
     keywords: string[];
+    carrier_type: {
+      value: CarrierType;
+      confidence: number;
+      /** confidence 较低时列出的备选判断，不要只保留一种 */
+      candidates?: string[];
+    };
+    /** true=只描述画面里实际可见的内容，不得用品牌/IP 常识补全画面之外的内容 */
+    visible_only?: boolean;
+    /** 容易触发生成模型自身常识联想的品牌/IP/知名作品名称 */
+    external_expansion_risk?: string[];
   };
   composition: {
     shot: 'extreme_close_up' | 'close_up' | 'medium' | 'wide' | 'extreme_wide';
@@ -56,6 +96,12 @@ export interface StyleSpec {
     layers?: number;
     symmetry?: 'symmetric' | 'asymmetric_balanced' | 'asymmetric_dynamic';
     visual_flow?: string;
+    /** 画面实际是几个独立版块拼成的，单张设计图写 1 */
+    panel_count: number;
+    /** 只有 panel_count > 1 时才需要填 */
+    panels?: Array<{ region: string; role: string }>;
+    /** 主要元素按前后顺序列出（从最前到最后），只要相对顺序，不用坐标 */
+    element_stacking?: string[];
   };
   palette: Array<{ hex: string; ratio: number; role: 'base' | 'secondary' | 'accent'; name_cn?: string }>;
   color: {
@@ -93,6 +139,8 @@ export interface StyleSpec {
     alignment?: string;
     case?: string;
     safe_area?: string;
+    /** 多段文字靠什么隐形关系互相咬合，如共用同一条左对齐线、顶边对齐、行距字块间距统一比例 */
+    implicit_alignment?: string;
     note?: string;
   };
   mood: string[];

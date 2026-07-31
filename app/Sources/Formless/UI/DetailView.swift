@@ -11,6 +11,7 @@ struct DetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
                 Preview(url: item.imageURL)
+                ContentTextCard(spec: spec)
                 StyleDNACard(spec: spec)
                 PaletteCard(palette: spec.palette, color: spec.color)
                 FieldsCard(spec: spec)
@@ -48,6 +49,135 @@ private struct Preview: View {
             // 2400px 覆盖 Retina 下最宽 1200pt 的显示区。参考图的材质和颗粒是判断依据，
             // 预览糊了就等于看不清风格。
             image = await ThumbnailCache.shared.thumbnail(for: url, maxPixel: 2400)
+        }
+    }
+}
+
+// MARK: - 内容与文字
+
+/// v0.2 新增：content 是隔离区（换主体时整个丢弃），但载体判断和逐段文字排版
+/// 是判断这张图能不能被信任复现的第一道证据，所以摆在风格 DNA 前面。
+private struct ContentTextCard: View {
+    let spec: StyleSpec
+
+    private static let carrierLabels: [CarrierTypeValue: String] = [
+        .flatDesign: "平面设计原图本身",
+        .printOnObject: "印在物体上的照片",
+        .screenshot: "界面 / 作品页截图",
+        .photoScene: "实景照片",
+        .unknown: "无法判断",
+    ]
+
+    var body: some View {
+        let carrier = spec.content.carrierType
+        Card(title: "内容与文字", subtitle: "画面里有什么、文字怎么排——换主体时这块会被丢弃") {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(spec.content.subject)
+                    .font(.system(size: 12))
+                    .textSelection(.enabled)
+                    .fixedSize(horizontal: false, vertical: true)
+                Text(spec.content.scene)
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            HStack(spacing: 6) {
+                Tag(
+                    text: "载体 \(Self.carrierLabels[carrier.value] ?? carrier.value.rawValue)",
+                    tint: carrier.confidence < 0.6 ? .orange : .secondary
+                )
+                Tag(text: "置信度 \(Int(carrier.confidence * 100))%", tint: .secondary)
+                if spec.composition.panelCount > 1 {
+                    Tag(text: "\(spec.composition.panelCount) 个版块", tint: .accentColor)
+                }
+            }
+            .padding(.top, 6)
+
+            if let candidates = carrier.candidates, !candidates.isEmpty {
+                Text("备选载体：\(candidates.joined(separator: "、"))")
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 3)
+            }
+
+            if let panels = spec.composition.panels, !panels.isEmpty {
+                VStack(alignment: .leading, spacing: 2) {
+                    ForEach(Array(panels.enumerated()), id: \.offset) { i, p in
+                        Text("第 \(i + 1) 块（\(p.region)）：\(p.role)")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .padding(.top, 3)
+            }
+
+            if !spec.content.onImageText.isEmpty {
+                Divider().padding(.vertical, 6)
+                Text("文字 \(spec.content.onImageText.count) 段")
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: 9) {
+                    ForEach(Array(spec.content.onImageText.enumerated()), id: \.offset) { _, t in
+                        TextElementRow(item: t)
+                    }
+                }
+                .padding(.top, 4)
+            }
+        }
+    }
+}
+
+private struct TextElementRow: View {
+    let item: OnImageText
+
+    private var ocrTint: Color {
+        switch item.ocrStatus {
+        case .exact: return .secondary
+        case .approx: return .yellow
+        case .unclear: return .orange
+        }
+    }
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 8) {
+            if let hex = item.color, hex.hasPrefix("#") {
+                RoundedRectangle(cornerRadius: 3)
+                    .fill(Color(hex: hex))
+                    .frame(width: 12, height: 12)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 3).strokeBorder(.separator, lineWidth: 0.5)
+                    )
+                    .padding(.top, 2)
+            }
+            VStack(alignment: .leading, spacing: 3) {
+                Text(item.ocrStatus == .unclear ? "〈\(item.text)〉" : "\u{201C}\(item.text)\u{201D}")
+                    .font(.system(size: 12))
+                    .textSelection(.enabled)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                if let breaks = item.lineBreaks, breaks.count > 1 {
+                    VStack(alignment: .leading, spacing: 1) {
+                        ForEach(breaks, id: \.self) { line in
+                            Text("↵ \(line)")
+                                .font(.system(size: 10))
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+
+                HStack(spacing: 5) {
+                    Tag(text: item.position, tint: .secondary)
+                    Tag(text: item.ocrStatus.rawValue, tint: ocrTint)
+                    if let layer = item.layer { Tag(text: layer.rawValue, tint: .secondary) }
+                    if let size = item.relativeSize { Tag(text: size.rawValue, tint: .secondary) }
+                    if let d = item.distortion, d != .none { Tag(text: d.rawValue, tint: .accentColor) }
+                }
+
+                if let note = item.typefaceNote, !note.isEmpty {
+                    Text(note).font(.system(size: 10)).foregroundStyle(.secondary)
+                }
+            }
         }
     }
 }
@@ -162,10 +292,14 @@ private struct FieldsCard: View {
 
     private var rows: [(String, String)] {
         let c = spec.composition
-        return [
+        let s = spec.source
+        var out: [(String, String)] = [
             ("媒介", spec.mediumDetail ?? spec.medium.rawValue),
             ("广告类型", spec.adType.rawValue),
-            ("画幅", c.aspectRatio),
+            (
+                "画幅",
+                "\(c.aspectRatio)（精确 \(s.width)×\(s.height)，\(String(format: "%.2f", s.aspectExact))）"
+            ),
             ("景别 / 视角", "\(c.shot.rawValue) · \(c.angle.rawValue)"),
             ("主体位置", "\(c.subjectPosition)，占比 \(Int(c.subjectCoverage * 100))%"),
             ("负空间", "\(c.negativeSpace.region)，\(Int(c.negativeSpace.ratio * 100))%"),
@@ -175,8 +309,15 @@ private struct FieldsCard: View {
                 "光线",
                 "\(spec.lighting.direction.rawValue) · \(spec.lighting.quality.rawValue) · 对比 \(spec.lighting.contrast.rawValue)"
             ),
-            ("气质", spec.mood.joined(separator: "、")),
         ]
+        if let stacking = c.elementStacking, !stacking.isEmpty {
+            out.append(("前后关系", stacking.joined(separator: " → ")))
+        }
+        if let align = spec.typography.implicitAlignment, !align.isEmpty {
+            out.append(("文字隐形关系", align))
+        }
+        out.append(("气质", spec.mood.joined(separator: "、")))
+        return out
     }
 
     var body: some View {

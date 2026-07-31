@@ -4,7 +4,7 @@ import { GEOMETRY_CAMP, EDGE_CAMP } from '../compile/vocab.js';
 export type Level = 'error' | 'warn';
 
 export interface Finding {
-  rule: 'L1' | 'L2' | 'L3' | 'L4' | 'L5' | 'L6';
+  rule: 'L1' | 'L2' | 'L3' | 'L4' | 'L5' | 'L6' | 'L7';
   level: Level;
   where: string;
   message: string;
@@ -58,6 +58,10 @@ function compiledFreeText(spec: StyleSpec): Array<[string, string | null | undef
     out.push([`material.surfaces[${i}].where`, s.where]);
     out.push([`material.surfaces[${i}].detail`, s.detail]);
   });
+  // v0.2：element_stacking 和 panels[].role 会被 panelText/stackingText 编进 text2img，
+  // 跟 grid/gap_rule 一样必须写成抽象角色（"主图形""标题文字组"），不能点名原图具体物件。
+  (spec.composition.element_stacking ?? []).forEach((s, i) => out.push([`composition.element_stacking[${i}]`, s]));
+  (spec.composition.panels ?? []).forEach((p, i) => out.push([`composition.panels[${i}].role`, p.role]));
   return out;
 }
 
@@ -262,9 +266,57 @@ export function lintBrandLeak(spec: StyleSpec, brief: Brief, prompt: CompiledPro
   return findings;
 }
 
+const CARRIER_CONFIDENCE_THRESHOLD = 0.6;
+/** 认不出的文字如果被描述得比这还长，多半是编出来的正文而不是字形/外观描述。 */
+const UNCLEAR_TEXT_LENGTH_LIMIT = 20;
+
+/**
+ * L7 v0.2 结构一致性。
+ *
+ * 这轮新增字段最容易偷懒的两个地方：写一个高置信度的假结论、或者标了 panel_count
+ * 却不填 panels——字段形状对了，但没提供任何真的信息。第三条专治 #17 那类 bug：
+ * ocr_status 已经标了 unclear，text 却照抄了一整句看起来通顺的文案。
+ */
+export function lintStructuralConsistency(spec: StyleSpec): Finding[] {
+  const findings: Finding[] = [];
+
+  const carrier = spec.content.carrier_type;
+  if (carrier.confidence < CARRIER_CONFIDENCE_THRESHOLD && !carrier.candidates?.length) {
+    findings.push({
+      rule: 'L7',
+      level: 'error',
+      where: 'content.carrier_type',
+      message: `载体判断置信度只有 ${carrier.confidence}，但没有填 candidates。置信度低于 ${CARRIER_CONFIDENCE_THRESHOLD} 时必须列出备选判断，不能只留一个看起来确定的结论。`,
+    });
+  }
+
+  const { panel_count, panels } = spec.composition;
+  if (panel_count > 1 && (!panels || panels.length !== panel_count)) {
+    findings.push({
+      rule: 'L7',
+      level: 'error',
+      where: 'composition.panels',
+      message: `panel_count=${panel_count}，但 panels 数组长度为 ${panels?.length ?? 0}。多面板图必须逐块记录 region/role，不能只标数量不给内容。`,
+    });
+  }
+
+  spec.content.on_image_text.forEach((t, i) => {
+    if (t.ocr_status === 'unclear' && t.text.trim().length > UNCLEAR_TEXT_LENGTH_LIMIT) {
+      findings.push({
+        rule: 'L7',
+        level: 'warn',
+        where: `content.on_image_text[${i}]`,
+        message: `ocr_status=unclear 但 text 长达 ${t.text.trim().length} 字，看起来像编出来的正文而不是字形/外观描述。认不出的文字应简短描述外观（如"手写花体签名"），不要照抄一整句看起来通顺的文案。`,
+      });
+    }
+  });
+
+  return findings;
+}
+
 /** StyleSpec 级检查（不依赖 Brief 和编译产物）。 */
 export function lintSpec(spec: StyleSpec): Finding[] {
-  return [...lintContentLeakage(spec), ...lintFormConflict(spec)];
+  return [...lintContentLeakage(spec), ...lintFormConflict(spec), ...lintStructuralConsistency(spec)];
 }
 
 /** 编译产物级检查。 */

@@ -2,6 +2,7 @@ import type { Brief, CompiledPrompt, StyleSpec } from '../../types.js';
 import {
   join, paletteText, colorText, lightingText, materialText, formText,
   compositionText, styleFamilyText, rewriteAvoid, qualityWords, refProtocol, copyText,
+  panelText, stackingText,
 } from '../shared.js';
 import { SHOT_CN, ANGLE_CN, MEDIUM_CN } from '../vocab.js';
 
@@ -49,6 +50,8 @@ export function compileJimeng(spec: StyleSpec, brief: Brief): CompiledPrompt {
     materialText(spec),
     formText(spec),
     compositionText(spec, brief),
+    panelText(spec),
+    stackingText(spec),
     copyText(brief, spec),
     spec.mood.join('、') + '氛围',
     ...avoid.positives,

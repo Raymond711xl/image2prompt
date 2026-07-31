@@ -103,6 +103,8 @@ enum GPTImageAdapter {
             negative,
             c.grid,
             (c.bleed ?? false) ? "图形四边出血裁切" : nil,
+            S.panelText(spec),
+            S.stackingText(spec),
             (safeArea != nil && brief.renderTextInImage != true)
                 ? "\(safeArea!)保持干净，供后期叠加文字图层" : nil,
             S.copyText(brief, spec),
