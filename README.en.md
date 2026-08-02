@@ -109,6 +109,10 @@ confidence), carrier judgment, panel structure, an anti-hallucination flag, and 
 front-to-back element order. Both codebases and their test suites are in sync. Scope and
 trade-offs: [`docs/stylespec-v0.2-scope.md`](docs/stylespec-v0.2-scope.md) (in Chinese).
 
+**What happens next, in order: [`docs/next-up.md`](docs/next-up.md)** (in Chinese) — and the next
+step is not writing code, it's running images. The v0.2 fields all landed, but not one real image
+has yet confirmed they actually fixed what they were meant to fix.
+
 Full roadmap, knob-panel design, and cost estimates: [`docs/roadmap.md`](docs/roadmap.md).
 Change-by-change history and the reasoning behind each: [`CHANGELOG.md`](CHANGELOG.md) (in Chinese).
 The eight known gaps in the analysis layer, with evidence and trigger conditions:

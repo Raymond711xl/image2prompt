@@ -91,6 +91,9 @@ lint 抓出 2 条内容泄漏并已修分析指令。剩下的是 10 张连跑�
 六组字段补进了 schema，两侧代码和测试均已同步。定案范围和取舍见
 [`docs/stylespec-v0.2-scope.md`](docs/stylespec-v0.2-scope.md)。
 
+**近期按什么顺序动手见 [`docs/next-up.md`](docs/next-up.md)**——下一步不是写代码，是跑图：
+v0.2 的字段全落地了，但还没有一张真图验证过它们真的解决了当初的问题。
+
 完整路线、十字轴设计、成本估算见 [`docs/roadmap.md`](docs/roadmap.md)；
 逐次改动和当时的判断见 [`CHANGELOG.md`](CHANGELOG.md)；
 分析层已知的 8 条缺口、证据和触发条件见 [`docs/analysis-gaps.md`](docs/analysis-gaps.md)。
