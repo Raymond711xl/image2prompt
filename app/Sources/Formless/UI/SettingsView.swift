@@ -6,9 +6,13 @@ struct SettingsView: View {
     var body: some View {
         TabView {
             EngineTab()
-                .tabItem { Label("识图引擎", systemImage: "eye") }
+                .tabItem { Label("识图 Agent", systemImage: "eye") }
+            GenerationTab()
+                .tabItem { Label("生图 Agent", systemImage: "wand.and.stars") }
             AnalysisTab()
                 .tabItem { Label("分析行为", systemImage: "slider.horizontal.3") }
+            SoundTab()
+                .tabItem { Label("提示音", systemImage: "speaker.wave.2") }
             TasteLibraryTab()
                 .tabItem { Label("审美库", systemImage: "heart.text.square") }
             DataTab()
@@ -18,7 +22,7 @@ struct SettingsView: View {
     }
 }
 
-// MARK: - 识图引擎
+// MARK: - 识图 Agent
 
 private struct EngineTab: View {
     @Environment(AppState.self) private var state
@@ -27,11 +31,14 @@ private struct EngineTab: View {
 
     var body: some View {
         @Bindable var settings = state.settings
-        let status = settings.engineStatus
+        let status = settings.visionStatus
 
         Form {
             Section {
-                StatusCard(status: status)
+                StatusCard(
+                    status: status,
+                    footnote: "这一屏只管**识图**（拖进来的图 → StyleSpec）。生图是另一条独立的路，"
+                        + "在「生图 Agent」那一屏配，两边互不影响。")
             }
 
             Section("算力从哪来") {
@@ -127,9 +134,98 @@ private struct EngineTab: View {
     }
 }
 
-/// 一眼看清：现在谁在出算力、配没配好、能干什么不能干什么
+// MARK: - 生图 Agent
+
+/// 生图独立一屏。
+///
+/// 和识图分开是因为这两条路**真的互不相干**：识图可以走 Claude Code / API / Mock，
+/// 生图只走 Codex 内置 image_gen。合成一屏时用户看不出哪一半连上了——
+/// 这正是"不知道每个连的是什么"的来源。
+private struct GenerationTab: View {
+    @Environment(AppState.self) private var state
+    @State private var probeResult: String?
+    @State private var probeOK = false
+
+    var body: some View {
+        @Bindable var settings = state.settings
+        let status = settings.generationStatus
+
+        Form {
+            Section {
+                StatusCard(
+                    status: status,
+                    footnote: "这一屏只管**生图**（提示词 → 图片）。识图在「识图 Agent」那一屏配，"
+                        + "两边互不影响——识图选 Mock 也照样能生图。")
+            }
+
+            Section("怎么出图") {
+                LabeledContent("引擎", value: "Codex 内置 image_gen")
+                LabeledContent("模型", value: "gpt-image-2")
+                Note(
+                    "**走你已有的 Codex 额度，不需要 OpenAI API Key。**\n"
+                        + "Codex CLI 0.144.1 起 `image_generation` 是稳定特性，自带系统 imagegen skill。"
+                        + "每点一次「生成图片」消耗一次 Codex 生图额度。")
+            }
+
+            Section("可执行文件") {
+                TextField("命令名或绝对路径", text: $settings.generationExecutable)
+                    .textFieldStyle(.roundedBorder)
+                    .font(.system(size: 11, design: .monospaced))
+                HStack {
+                    Button("检测") { runProbe() }
+                    if let probeResult {
+                        Label(
+                            probeResult,
+                            systemImage: probeOK ? "checkmark.circle.fill" : "xmark.circle.fill"
+                        )
+                        .font(.system(size: 11))
+                        .foregroundStyle(probeOK ? .green : .red)
+                        .textSelection(.enabled)
+                    }
+                }
+                Note(
+                    "单独一个字段，不跟识图共用——你可能识图走 Claude Code、生图走 Codex。\n"
+                        + "双击启动的 App 拿不到终端的 PATH，找不到就填绝对路径。")
+            }
+
+            Section("超时") {
+                Picker("单张最多等", selection: $settings.generationTimeout) {
+                    Text("5 分钟").tag(300.0)
+                    Text("10 分钟").tag(600.0)
+                    Text("15 分钟").tag(900.0)
+                    Text("30 分钟").tag(1800.0)
+                }
+                Note("实测单张 107~148 秒，但 agent 编排波动大，别卡太紧。识图的超时是另一个设置。")
+            }
+
+            Section("已知限制") {
+                Note(
+                    "**画幅只能软约束。** 内置 image_gen 没有尺寸参数（那是 CLI fallback 专属，"
+                        + "那条要 OpenAI API Key），画幅只能写进提示词，模型可能不听。\n"
+                        + "出图后会拿实测像素和你要的比例比对，没中会在结果卡上打橙色徽标——"
+                        + "**没中的图别拿去判断构图**。")
+            }
+        }
+        .formStyle(.grouped)
+        .onChange(of: settings.generationExecutable) { _, _ in probeResult = nil }
+    }
+
+    private func runProbe() {
+        switch state.settings.probeGenerationAgent() {
+        case .success(let path):
+            probeOK = true
+            probeResult = path
+        case .failure(let error):
+            probeOK = false
+            probeResult = error.localizedDescription
+        }
+    }
+}
+
+/// 一眼看清：现在谁在出算力、配没配好
 private struct StatusCard: View {
     let status: EngineStatus
+    var footnote: String? = nil
 
     private var tint: Color {
         switch status.level {
@@ -162,34 +258,14 @@ private struct StatusCard: View {
 
             Divider().padding(.vertical, 2)
 
-            HStack(spacing: 16) {
-                Capability(label: "识图", ok: status.canAnalyze)
-                Capability(label: "生图", ok: status.canGenerate)
-            }
-
-            if !status.canGenerate {
-                Text("agent 和视觉模型都只能看图，不能画图。生图要把提示词复制到即梦 / GPT Image 网页，或以后接生图 API。")
+            if let note = footnote {
+                Text(note)
                     .font(.system(size: 10))
                     .foregroundStyle(.tertiary)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
         .padding(.vertical, 4)
-    }
-}
-
-private struct Capability: View {
-    let label: String
-    let ok: Bool
-
-    var body: some View {
-        HStack(spacing: 4) {
-            Image(systemName: ok ? "checkmark.circle.fill" : "minus.circle")
-                .foregroundStyle(ok ? .green : .secondary)
-            Text(label)
-                .foregroundStyle(ok ? .primary : .secondary)
-        }
-        .font(.system(size: 11))
     }
 }
 
@@ -225,6 +301,67 @@ private struct AnalysisTab: View {
         .onChange(of: settings.autoAnalyze) { _, _ in state.applySettings() }
         .onChange(of: settings.maxConcurrent) { _, _ in state.applySettings() }
         .onChange(of: settings.agentTimeout) { _, _ in state.applySettings() }
+    }
+}
+
+// MARK: - 提示音
+
+/// 一张图分析 2~3 分钟、生成 3~4 分钟，没人盯着屏幕等。
+/// 提示音是这个 App 唯一能在你切走之后把你叫回来的通道，所以它有独立一页。
+private struct SoundTab: View {
+    @Environment(AppState.self) private var state
+
+    var body: some View {
+        @Bindable var settings = state.settings
+
+        Form {
+            Section("什么时候响") {
+                LabeledContent {
+                    HStack(spacing: 8) {
+                        Toggle("", isOn: $settings.soundOnAnalyzeDone).labelsHidden()
+                        Button("试听") { Chime.play(.analyze) }
+                            .controlSize(.small)
+                    }
+                } label: {
+                    Text("单张分析完成")
+                }
+                LabeledContent {
+                    HStack(spacing: 8) {
+                        Toggle("", isOn: $settings.soundOnGenerateDone).labelsHidden()
+                        Button("试听") { Chime.play(.generate) }
+                            .controlSize(.small)
+                    }
+                } label: {
+                    Text("生成出图完成")
+                }
+                LabeledContent {
+                    HStack(spacing: 8) {
+                        Toggle("", isOn: $settings.soundOnFailure).labelsHidden()
+                        Button("试听") { Chime.play(.fail) }
+                            .controlSize(.small)
+                    }
+                } label: {
+                    Text("失败时换一个音")
+                }
+                Note(
+                    "分析和生成分开两个开关：批量跑 30 张时分析音会响 30 次，"
+                        + "有人只想听最后出图那一声。\n"
+                        + "失败音默认开着——不区分的话，人走开一趟回来会以为全成了。")
+            }
+
+            Section("音量") {
+                Slider(value: $settings.soundVolume, in: 0...1) {
+                    Text("音量")
+                } minimumValueLabel: {
+                    Image(systemName: "speaker")
+                } maximumValueLabel: {
+                    Image(systemName: "speaker.wave.3")
+                }
+                .onChange(of: settings.soundVolume) { _, _ in Chime.play(.analyze) }
+                Note("拖动时会即时试听。同一个音在 0.25 秒内只响一次——并发三张图同时跑完，听到的是一声，不是糊成一团的三声。")
+            }
+        }
+        .formStyle(.grouped)
     }
 }
 

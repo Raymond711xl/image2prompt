@@ -23,9 +23,9 @@ private func withSettings(_ body: (Settings) -> Void) {
 func mockStatusIsHonest() {
     withSettings { s in
         s.providerID = "mock"
-        let status = s.engineStatus
+        let status = s.visionStatus
         #expect(status.level == .degraded)
-        #expect(status.canAnalyze == false, "Mock 不算真的能识图")
+        #expect(status.isReal == false, "Mock 不算真的能识图")
         #expect(status.detail?.contains("与你拖进来的图无关") == true)
     }
 }
@@ -36,9 +36,9 @@ func readyAgentReportsPath() {
     withSettings { s in
         s.providerID = "custom"
         s.customExecutable = "/bin/echo"
-        let status = s.engineStatus
+        let status = s.visionStatus
         #expect(status.level == .ready)
-        #expect(status.canAnalyze)
+        #expect(status.isReal)
         #expect(status.detail == "/bin/echo")
         #expect(status.channel.contains("不额外计费"), "要说清走的是订阅不是 API")
     }
@@ -50,9 +50,9 @@ func brokenAgentReportsError() {
     withSettings { s in
         s.providerID = "custom"
         s.customExecutable = "definitely-not-real-binary-xyz"
-        let status = s.engineStatus
+        let status = s.visionStatus
         #expect(status.level == .broken)
-        #expect(status.canAnalyze == false)
+        #expect(status.isReal == false)
     }
 }
 
@@ -62,9 +62,9 @@ func emptyExecutableFallsBackHonestly() {
     withSettings { s in
         s.providerID = "custom"
         s.customExecutable = ""
-        let status = s.engineStatus
+        let status = s.visionStatus
         #expect(status.level == .degraded)
-        #expect(status.canAnalyze == false)
+        #expect(status.isReal == false)
         #expect(status.detail?.contains("Mock") == true, "必须点明当前实际走的是 Mock")
     }
 }
@@ -75,22 +75,40 @@ func apiWithoutKeyIsHonest() {
     withSettings { s in
         s.providerID = "anthropic"
         s.apiKey = ""
-        let status = s.engineStatus
+        let status = s.visionStatus
         #expect(status.level == .degraded)
         #expect(status.detail?.contains("Mock") == true)
     }
 }
 
-@Test("任何引擎都不声称能生图")
+@Test("生图能力与识图引擎无关")
 @MainActor
-func nothingClaimsGeneration() {
-    // agent 和视觉 API 都只能看图不能画图。这一条写错，用户会以为填了 key 就能出图。
+func generationIsIndependentOfVisionEngine() {
+    // 2026-08-02 起生图这条路通了（Codex 内置 image_gen），但它和识图是两条独立的路：
+    // 生图取决于本机装没装 codex，跟这里选了 Mock 还是 Anthropic 没有关系。
+    // 这一条写错，用户会以为"换个识图引擎就能出图"或"选了 Mock 就出不了图"。
+    let expected = CodexImageProvider.isAvailable
     withSettings { s in
         for (provider, exe) in [("mock", ""), ("custom", "/bin/echo"), ("anthropic", "")] {
             s.providerID = provider
             s.customExecutable = exe
-            #expect(s.engineStatus.canGenerate == false, "\(provider) 不该声称能生图")
+            #expect(
+                s.generationStatus.isReal == expected,
+                "\(provider) 的生图能力不该随识图引擎变化")
         }
+    }
+}
+
+@Test("识图不可用时也不影响生图")
+@MainActor
+func brokenVisionStillAllowsGeneration() {
+    // 识图引擎坏了（找不到可执行文件）不该连带把生图按钮也关掉
+    withSettings { s in
+        s.providerID = "custom"
+        s.customExecutable = "/nonexistent/definitely-not-here"
+        let status = s.visionStatus
+        #expect(status.isReal == false)
+        #expect(s.generationStatus.isReal == CodexImageProvider.isAvailable)
     }
 }
 

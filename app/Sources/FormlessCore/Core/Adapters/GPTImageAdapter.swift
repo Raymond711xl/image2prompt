@@ -91,8 +91,14 @@ enum GPTImageAdapter {
         let avoidClause = (brief.mustAvoid?.isEmpty ?? true)
             ? nil : "画面中不出现\(brief.mustAvoid!.joined(separator: "、"))"
 
+        // medium_detail 是分析器写的具体媒介描述（"平面海报设计：像素图形 + 超大字重排版"），
+        // 比 medium 枚举（"排版海报"）信息量高一个数量级，之前整段被丢掉。
+        // 单独一段而不是拼进 head：它自带冒号，塞进 head 会拼出两个冒号的病句。
+        let mediumDetail = spec.mediumDetail?.trimmingCharacters(in: .whitespacesAndNewlines)
+
         var parts: [String?] = [
             head + shot,
+            (mediumDetail?.isEmpty ?? true) ? nil : mediumDetail,
             placement,
             brief.action,
             brief.scene,
@@ -102,6 +108,9 @@ enum GPTImageAdapter {
             S.formText(spec),
             negative,
             c.grid,
+            // 密度：即梦走 compositionText 一直带着它，GPT Image 自己拼 placement 时漏了。
+            // 这是两个适配器的不一致，不是设计取舍。
+            Vocab.densityCN[c.density],
             (c.bleed ?? false) ? "图形四边出血裁切" : nil,
             S.panelText(spec),
             S.stackingText(spec),

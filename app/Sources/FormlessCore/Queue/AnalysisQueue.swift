@@ -31,6 +31,9 @@ public final class QueueItem: Identifiable, @unchecked Sendable {
     public let addedAt: Date
     public internal(set) var status: AnalysisStatus = .waiting
     public internal(set) var spec: StyleSpec?
+    /// 这一轮分析是什么时候开跑的。界面按它推进度条，**不落库**——
+    /// 进程重启后这条会回到「等待」，上一次的起点也就没有意义了。
+    public internal(set) var analysisStartedAt: Date?
 
     /// 用户随手写的「这次要生成什么」原文。留着不丢——解析可能出错，原文是唯一真相。
     public var briefText: String = ""
@@ -110,6 +113,13 @@ public final class AnalysisQueue {
 
     /// 最近一次落库失败的原因，界面可以据此提示
     public private(set) var lastStoreError: String?
+
+    /// 单条分析走到终态时回调一次，`success` 区分完成和失败。
+    ///
+    /// 队列自己不发声——Core 不依赖 AppKit，也不该知道"提示音"这种界面概念。
+    /// 接线在 AppState，响什么由 Chime 决定。
+    @ObservationIgnored
+    public var onItemFinished: ((QueueItem, Bool) -> Void)?
 
     public func setProvider(_ newProvider: any VisionProvider) {
         provider = newProvider
@@ -217,6 +227,7 @@ public final class AnalysisQueue {
 
     private func start(_ item: QueueItem) {
         item.status = .analyzing
+        item.analysisStartedAt = Date()
         // 「分析中」刻意不落库——Store 会把它存成「等待」，
         // 这样进程被杀掉后重开，这条会回到等待而不是卡在转圈
         let provider = self.provider
@@ -236,15 +247,21 @@ public final class AnalysisQueue {
 
     private func finish(_ item: QueueItem, result: Result<StyleSpec, Error>) {
         running[item.id] = nil
+        item.analysisStartedAt = nil
+        let success: Bool
         switch result {
         case .success(let spec):
             item.spec = spec
             item.status = .done
+            success = true
         case .failure(let error):
             let message = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
             item.status = .failed(message)
+            success = false
         }
         persist(item)
+        // 所有分析终态都从这里过，提示音只接这一个点就够
+        onItemFinished?(item, success)
         pump()
     }
 }

@@ -4,7 +4,7 @@ import {
   compositionText, styleFamilyText, rewriteAvoid, qualityWords, refProtocol, copyText,
   resolveSafeArea, panelText, stackingText,
 } from '../shared.js';
-import { SHOT_CN, ANGLE_CN, MEDIUM_CN, NEGATIVE_REGION_CN } from '../vocab.js';
+import { SHOT_CN, ANGLE_CN, MEDIUM_CN, NEGATIVE_REGION_CN, DENSITY_CN } from '../vocab.js';
 
 /** 编译期失败：提示词不该被产出成一个已知会出问题的样子。 */
 export class CompileError extends Error {
@@ -82,8 +82,14 @@ function buildText2Img(spec: StyleSpec, brief: Brief, positives: string[], quali
     ? `画面中不出现${brief.must_avoid.join('、')}`
     : null;
 
+  // medium_detail 是分析器写的具体媒介描述（"平面海报设计：像素图形 + 超大字重排版"），
+  // 比 medium 枚举（"排版海报"）信息量高一个数量级，之前整段被丢掉。
+  // 单独一段而不是拼进 head：它自带冒号，塞进 head 会拼出两个冒号的病句。
+  const mediumDetail = spec.medium_detail?.trim() || null;
+
   return join([
     head + shot,
+    mediumDetail,
     placement,
     brief.action,
     brief.scene,
@@ -93,6 +99,9 @@ function buildText2Img(spec: StyleSpec, brief: Brief, positives: string[], quali
     formText(spec),
     negative,
     c.grid,
+    // 密度：即梦走 compositionText 一直带着它，GPT Image 自己拼 placement 时漏了。
+    // 这是两个适配器的不一致，不是设计取舍。
+    DENSITY_CN[c.density],
     c.bleed ? '图形四边出血裁切' : null,
     panelText(spec),
     stackingText(spec),

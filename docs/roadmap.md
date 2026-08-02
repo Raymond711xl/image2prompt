@@ -176,9 +176,11 @@ VisionProvider
 
 ### 两个硬限制
 
-1. **agent 不能生图。** Claude Code / Codex 都是文本+代码 agent，能看图不能画图。
-   生图仍需生图模型 API，或手动贴到网页。订阅（Claude Max / ChatGPT Plus）不含
-   生图 API 额度——网页能画图，但没有可编程接口。
+1. ~~**agent 不能生图。**~~ **已过时（2026-08-02 实测推翻）。** Codex CLI 0.144.1 起
+   `image_generation` 为 stable，自带 `~/.codex/skills/.system/imagegen`，内置 `image_gen`
+   工具走 Codex 登录额度，**不需要 `OPENAI_API_KEY`**。`codex exec` 可无头调用，回传链路已跑通，
+   见 [闭环生图](codex-imagegen.md)。Claude Code 仍不能生图。
+   注意：**内置模式无法精确控制画幅**，精确尺寸只有 CLI fallback 才有，那条要 API key。
 2. **与 Mac App Store 沙盒互斥。** 沙盒禁止启动任意子进程，上架就用不了这个模式。
    直接分发（公证的 `.dmg`）不受影响。想两者都要，得做两个构建。
 

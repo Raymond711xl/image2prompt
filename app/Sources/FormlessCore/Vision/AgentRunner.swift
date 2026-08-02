@@ -82,15 +82,46 @@ public enum AgentRunner {
         let args = preset.resolvedArguments(prompt: prompt)
         let stdinData = preset.promptViaStdin ? Data(prompt.utf8) : nil
 
+        let state = RunState()
         return try await withTaskCancellationHandler {
             try await runProcess(
+                state: state,
                 executable: executable,
                 arguments: args,
                 stdin: stdinData,
                 timeout: preset.timeout
             )
         } onCancel: {
-            // 取消由 runProcess 内部的 state box 处理
+            state.cancel()
+        }
+    }
+
+    /// 通用入口：跑任意命令行，收标准输出。
+    ///
+    /// `AgentPreset` 那条口子假设"参数模板里塞一段提示词"，生图不是这个形状——
+    /// 它要一串固定 flag、一个工作目录，提示词走 stdin，结果走文件。
+    /// 所以在 preset 之外单开一个入口，进程管理（PATH 补全、超时、边跑边收、
+    /// 退出码收口）仍然共用下面同一份实现。
+    public static func run(
+        executable: String,
+        arguments: [String],
+        stdin: String? = nil,
+        timeout: TimeInterval,
+        currentDirectory: URL? = nil
+    ) async throws -> String {
+        let url = try resolveExecutable(executable)
+        let state = RunState()
+        return try await withTaskCancellationHandler {
+            try await runProcess(
+                state: state,
+                executable: url,
+                arguments: arguments,
+                stdin: stdin.map { Data($0.utf8) },
+                timeout: timeout,
+                currentDirectory: currentDirectory
+            )
+        } onCancel: {
+            state.cancel()
         }
     }
 
@@ -101,7 +132,9 @@ public enum AgentRunner {
         private var finished = false
         private var out = Data()
         private var err = Data()
-        var process: Process?
+        private var process: Process?
+        private var launched = false
+        private var cancelled = false
 
         /// 返回 true 表示这次是第一次收尾，调用方可以恢复 continuation
         func claim() -> Bool {
@@ -110,6 +143,39 @@ public enum AgentRunner {
             if finished { return false }
             finished = true
             return true
+        }
+
+        /// 把进程交给 box 保管。返回 true 表示在启动之前就已经被取消了，
+        /// 调用方不该再 run()——起来了也是白烧一次额度。
+        func attach(_ newProcess: Process) -> Bool {
+            lock.lock()
+            defer { lock.unlock() }
+            process = newProcess
+            return cancelled
+        }
+
+        /// 进程真的起来了。**必须在 `process.run()` 之后调**：
+        /// 对没启动过的 Process 调 terminate() 会直接抛 ObjC 异常，整个进程崩掉。
+        func markLaunched() {
+            lock.lock()
+            let alreadyCancelled = cancelled
+            launched = true
+            let running = process
+            lock.unlock()
+            // run() 和 cancel() 撞在一起时，取消先到、terminate 被跳过，这里补一刀
+            if alreadyCancelled, let running, running.isRunning { running.terminate() }
+        }
+
+        /// 杀掉子进程。
+        ///
+        /// 不杀的话，取消只是放开了我们这边的等待：`codex` 还在后台跑、额度照烧，
+        /// 而队列已经以为自己空闲了，下一次点生成会并排再起一个。
+        func cancel() {
+            lock.lock()
+            cancelled = true
+            let target = launched ? process : nil
+            lock.unlock()
+            if let target, target.isRunning { target.terminate() }
         }
 
         func appendOut(_ data: Data) {
@@ -135,14 +201,15 @@ public enum AgentRunner {
     }
 
     private static func runProcess(
-        executable: URL, arguments: [String], stdin: Data?, timeout: TimeInterval
+        state: RunState,
+        executable: URL, arguments: [String], stdin: Data?, timeout: TimeInterval,
+        currentDirectory: URL? = nil
     ) async throws -> String {
-        let state = RunState()
-
         return try await withCheckedThrowingContinuation { continuation in
             let process = Process()
             process.executableURL = executable
             process.arguments = arguments
+            if let currentDirectory { process.currentDirectoryURL = currentDirectory }
 
             // 补上 PATH，agent 自己可能还要调别的工具
             var env = ProcessInfo.processInfo.environment
@@ -156,7 +223,11 @@ public enum AgentRunner {
             process.standardError = errPipe
             if stdin != nil { process.standardInput = Pipe() }
 
-            state.process = process
+            // 交给 box 保管，取消时才有东西可杀
+            if state.attach(process) {
+                if state.claim() { continuation.resume(throwing: AgentError.cancelled) }
+                return
+            }
 
             // 边跑边收，避免管道缓冲区写满导致子进程阻塞
             outPipe.fileHandleForReading.readabilityHandler = { handle in
@@ -193,6 +264,7 @@ public enum AgentRunner {
 
             do {
                 try process.run()
+                state.markLaunched()
             } catch {
                 if state.claim() {
                     continuation.resume(throwing: AgentError.launchFailed(error.localizedDescription))

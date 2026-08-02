@@ -33,6 +33,10 @@ struct MainView: View {
         .onChange(of: state.queue.activeCount) { _, _ in
             state.syncBusyIndicator()
         }
+        // 生成开跑时也要点亮菜单栏图标：那是最长的一段等待
+        .onChange(of: state.generation.isBusy) { _, _ in
+            state.syncBusyIndicator()
+        }
     }
 
     private func handleDrop(_ providers: [NSItemProvider]) -> Bool {
@@ -70,8 +74,8 @@ private struct EngineBanner: View {
     @Environment(AppState.self) private var state
 
     var body: some View {
-        let status = state.settings.engineStatus
-        if !status.canAnalyze {
+        let status = state.settings.visionStatus
+        if !status.isReal {
             HStack(spacing: 8) {
                 Image(systemName: status.symbol)
                     .foregroundStyle(status.level == .broken ? Color.red : Color.orange)
@@ -125,29 +129,75 @@ private struct QueueRow: View {
     @Environment(AppState.self) private var state
     let item: QueueItem
 
+    /// 这一行现在在跑什么。分析和生成不会同时发生（要先分析出 spec 才谈得上生成），
+    /// 所以两者共用同一块位置，行高不会跳。
+    private var running: (startedAt: Date, expected: TimeInterval, tint: Color, label: String, icon: String)? {
+        if let startedAt = state.generation.state(for: item.id).startedAt {
+            return (startedAt, Pace.generation, .purple, "生成中", "wand.and.stars")
+        }
+        if item.status == .analyzing, let startedAt = item.analysisStartedAt {
+            return (startedAt, Pace.analysis, .accentColor, "分析中", "eye")
+        }
+        return nil
+    }
+
+    /// 生成失败要在侧栏留个记号：人是听着提示音离开的，回来得知道是哪张出的事。
+    private var generationFailure: String? {
+        if case .failed(let message) = state.generation.state(for: item.id) { return message }
+        return nil
+    }
+
     var body: some View {
-        HStack(spacing: 10) {
-            ThumbnailView(url: item.imageURL, size: 44)
+        VStack(alignment: .leading, spacing: 5) {
+            HStack(spacing: 10) {
+                ThumbnailView(url: item.imageURL, size: 44)
 
-            VStack(alignment: .leading, spacing: 3) {
-                Text(item.fileName)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-                    .font(.system(size: 12, weight: .medium))
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(item.fileName)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                        .font(.system(size: 12, weight: .medium))
 
-                StatusBadge(status: item.status)
+                    // 在跑的时候状态徽标让位给进度条——它俩说的是同一件事，
+                    // 而进度条还多说了"还要多久"。
+                    if running == nil {
+                        StatusBadge(status: item.status)
+                    }
+                    if let generationFailure {
+                        HStack(spacing: 4) {
+                            Image(systemName: "wand.and.stars")
+                                .foregroundStyle(.orange)
+                            Text("生成失败：\(generationFailure)")
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+                                .help(generationFailure)
+                        }
+                        .font(.system(size: 10))
+                    }
+                }
+
+                Spacer(minLength: 0)
+
+                if case .failed = item.status {
+                    Button {
+                        state.queue.retry(item)
+                    } label: {
+                        Image(systemName: "arrow.clockwise")
+                    }
+                    .buttonStyle(.borderless)
+                    .help("重试")
+                }
             }
 
-            Spacer(minLength: 0)
-
-            if case .failed = item.status {
-                Button {
-                    state.queue.retry(item)
-                } label: {
-                    Image(systemName: "arrow.clockwise")
-                }
-                .buttonStyle(.borderless)
-                .help("重试")
+            if let running {
+                TaskProgress(
+                    startedAt: running.startedAt,
+                    expected: running.expected,
+                    tint: running.tint,
+                    label: running.label,
+                    icon: running.icon
+                )
             }
         }
         .padding(.vertical, 3)
@@ -161,6 +211,7 @@ private struct QueueRow: View {
             Divider()
             Button("从队列移除", role: .destructive) {
                 if state.selected == item { state.selected = nil }
+                state.generation.forget(itemID: item.id)
                 state.queue.remove(item)
             }
         }
@@ -201,11 +252,28 @@ private struct QueueFooter: View {
     var body: some View {
         let q = state.queue
         HStack(spacing: 8) {
-            Text("\(q.doneCount)/\(q.items.count) 完成")
+            Text("分析 \(q.doneCount)/\(q.items.count)")
                 .font(.system(size: 11))
                 .foregroundStyle(.secondary)
 
+            // 生成只在跑的时候占位——大多数时候队列里没有生成任务，
+            // 常驻一个"生成 0/0"只是噪音。
+            if state.generation.isBusy {
+                Text("·").font(.system(size: 11)).foregroundStyle(.tertiary)
+                HStack(spacing: 3) {
+                    Image(systemName: "wand.and.stars")
+                    Text("生成中")
+                }
+                .font(.system(size: 11))
+                .foregroundStyle(.purple)
+            }
+
             Spacer()
+
+            if state.generation.isBusy {
+                Button("取消生成") { state.generation.cancel() }
+                    .controlSize(.small)
+            }
 
             if q.isPaused {
                 Button("继续") { q.resume() }

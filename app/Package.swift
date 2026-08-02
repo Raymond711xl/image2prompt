@@ -22,7 +22,10 @@ let package = Package(
         .executableTarget(
             name: "Formless",
             dependencies: ["FormlessCore"],
-            path: "Sources/Formless"
+            path: "Sources/Formless",
+            // Resources/Sounds 里是完成提示音。放在可执行 target 而不是 Core：
+            // 发声是界面反馈，Core 必须保持无 AppKit、能在没有窗口的情况下跑测试。
+            resources: [.process("Resources")]
         ),
         .testTarget(
             name: "FormlessCoreTests",

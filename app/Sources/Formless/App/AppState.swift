@@ -7,6 +7,7 @@ import Observation
 @MainActor
 final class AppState {
     let queue: AnalysisQueue
+    let generation: GenerationQueue
     let settings = Settings.shared
 
     /// 当前详情页看的是哪一条
@@ -30,6 +31,18 @@ final class AppState {
         queue = AnalysisQueue(provider: settings.makeProvider(), store: store)
         queue.autoAnalyze = settings.autoAnalyze
         queue.maxConcurrent = settings.maxConcurrent
+        generation = GenerationQueue(provider: settings.makeGenerationProvider())
+
+        // 提示音接在这里，不在 Core 里：一张图跑 2~4 分钟，没人盯着屏幕等，
+        // 声音是切走之后唯一能把人叫回来的通道。
+        queue.onItemFinished = { _, success in
+            Chime.ringFinish(success: success, isGeneration: false)
+        }
+        generation.onFinished = { [weak self] _, success in
+            Chime.ringFinish(success: success, isGeneration: true)
+            self?.syncBusyIndicator()
+        }
+
         // 上次没跑完的接着跑。必须在设置生效之后调，否则用的是默认并发数。
         queue.resumePending()
     }
@@ -39,11 +52,13 @@ final class AppState {
         queue.autoAnalyze = settings.autoAnalyze
         queue.maxConcurrent = settings.maxConcurrent
         queue.setProvider(settings.makeProvider())
+        generation.setProvider(settings.makeGenerationProvider())
     }
 
-    /// 供界面在状态变化时调用，驱动菜单栏图标的忙碌标记
+    /// 供界面在状态变化时调用，驱动菜单栏图标的忙碌标记。
+    /// 生成也算忙——那是最长的一段等待，图标不亮就等于没人知道它在干活。
     func syncBusyIndicator() {
-        let busy = queue.activeCount > 0
+        let busy = queue.activeCount > 0 || generation.isBusy
         guard busy != lastBusy else { return }
         lastBusy = busy
         onBusyChanged?(busy)
