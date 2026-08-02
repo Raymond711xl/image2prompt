@@ -11,11 +11,11 @@ struct DetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
                 Preview(url: item.imageURL)
-                ContentTextCard(spec: spec)
                 StyleDNACard(spec: spec)
                 PaletteCard(palette: spec.palette, color: spec.color)
                 FieldsCard(spec: spec)
                 LeakageCard(spec: spec)
+                ContentTextCard(spec: spec)
                 BriefSection(item: item, spec: spec, onBriefChanged: onBriefChanged)
             }
             .padding(20)
@@ -55,10 +55,11 @@ private struct Preview: View {
 
 // MARK: - 内容与文字
 
-/// v0.2 新增：content 是隔离区（换主体时整个丢弃），但载体判断和逐段文字排版
-/// 是判断这张图能不能被信任复现的第一道证据，所以摆在风格 DNA 前面。
+/// v0.2 新增：content 是隔离区，换主体时整个丢弃——所以放在风格 DNA / 色板 / 视觉语法
+/// 这些可复用的风格字段后面，当作核对用的原始事实，不是第一眼要看的东西。
 private struct ContentTextCard: View {
     let spec: StyleSpec
+    @State private var textExpanded = false
 
     private static let carrierLabels: [CarrierTypeValue: String] = [
         .flatDesign: "平面设计原图本身",
@@ -114,15 +115,34 @@ private struct ContentTextCard: View {
 
             if !spec.content.onImageText.isEmpty {
                 Divider().padding(.vertical, 6)
-                Text("文字 \(spec.content.onImageText.count) 段")
-                    .font(.system(size: 10))
-                    .foregroundStyle(.secondary)
-                VStack(alignment: .leading, spacing: 9) {
-                    ForEach(Array(spec.content.onImageText.enumerated()), id: \.offset) { _, t in
-                        TextElementRow(item: t)
+                // 不用 DisclosureGroup：它只有那个小三角能点，标题文字是死的。
+                // 自己搭一行按钮，整条（三角 + 文字 + 右边留白）都是热区。
+                Button {
+                    withAnimation(.easeInOut(duration: 0.15)) { textExpanded.toggle() }
+                } label: {
+                    HStack(spacing: 5) {
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 9, weight: .semibold))
+                            .rotationEffect(.degrees(textExpanded ? 90 : 0))
+                        Text("文字 \(spec.content.onImageText.count) 段")
+                            .font(.system(size: 11))
+                        Spacer(minLength: 0)
                     }
+                    .foregroundStyle(.secondary)
+                    .padding(.vertical, 4)
+                    .contentShape(Rectangle())
                 }
-                .padding(.top, 4)
+                .buttonStyle(.plain)
+
+                if textExpanded {
+                    VStack(alignment: .leading, spacing: 9) {
+                        ForEach(Array(spec.content.onImageText.enumerated()), id: \.offset) {
+                            _, t in
+                            TextElementRow(item: t)
+                        }
+                    }
+                    .padding(.top, 2)
+                }
             }
         }
     }

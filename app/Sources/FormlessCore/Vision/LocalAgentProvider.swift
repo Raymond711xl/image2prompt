@@ -33,7 +33,7 @@ public struct LocalAgentProvider: VisionProvider {
         do {
             output = try await AgentRunner.run(preset: preset, prompt: prompt)
         } catch let error as AgentRunner.AgentError {
-            throw VisionError.transport(error.errorDescription ?? "\(error)")
+            throw VisionError.agentFailed(error.errorDescription ?? "\(error)")
         }
 
         if Task.isCancelled { throw VisionError.cancelled }

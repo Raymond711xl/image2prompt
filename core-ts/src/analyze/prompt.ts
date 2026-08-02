@@ -1,5 +1,30 @@
+import { execFileSync } from 'node:child_process';
 import { basename, resolve } from 'node:path';
 import { SCHEMA_DIR } from '../validate.js';
+
+/**
+ * 精确像素宽高，脚本自己量，不要委托给分析 agent。
+ *
+ * 早期版本把这件事写进了分析指令，让 agent 自己跑 shell 工具——App 里的 Claude Code
+ * 预设锁了 `--allowed-tools Read`（刻意的限制，换更快更稳），指令要求它跑 shell 命令，
+ * 权限又不让跑，agent 会在这上面卡壳，拖慢分析还可能导致失败。这类确定性计算本来就
+ * 不该麻烦模型——脚本自己跑 `sips`，直接把量好的数字喂给 agent，agent 只管抄。
+ */
+function measurePixelDimensions(imagePath: string): { width: number; height: number } | null {
+  try {
+    const out = execFileSync('sips', ['-g', 'pixelWidth', '-g', 'pixelHeight', imagePath], {
+      encoding: 'utf8',
+    });
+    const width = Number(/pixelWidth:\s*(\d+)/.exec(out)?.[1]);
+    const height = Number(/pixelHeight:\s*(\d+)/.exec(out)?.[1]);
+    if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+      return null;
+    }
+    return { width, height };
+  } catch {
+    return null;
+  }
+}
 
 /**
  * 生成交给 Claude Code / Codex 执行的分析指令。
@@ -13,6 +38,12 @@ export function buildAnalyzePrompt(imagePath: string, outPath?: string): string 
   // 默认写到当前工作目录的 specs/ 下，绝不落回原图目录——原始图片全程只读
   const out = outPath
     ?? resolve(process.cwd(), 'specs', basename(imagePath).replace(/\.[^.]+$/, '') + '.stylespec.json');
+
+  const dims = measurePixelDimensions(imagePath);
+  const exactDimensionsNote = dims
+    ? `已经量好：${dims.width}×${dims.height}，aspect_exact=${(dims.width / dims.height).toFixed(4)}。` +
+      `直接抄这三个值，不需要你自己测量或调用 shell 工具`
+    : `脚本没能自动读出像素尺寸（文件可能损坏或格式不支持）。source.width/height 如实标注最接近的整数并写进 confidence.uncertain_fields，不要为了填满字段编造精确值`;
 
   return `# 任务：把参考图分析成 StyleSpec v0.2
 
@@ -142,9 +173,8 @@ v0.2 仍然没有 motion 块（已知缺口，见 docs/analysis-gaps.md 的 G4�
 这轮新增的字段专治"肉眼一眼就能看出错，但 v0.1 没地方写"的几类问题。逐条说明：
 
 **source.width / source.height / source.aspect_exact —— 精确画幅，不许目测**
-用 shell 工具量出真实像素尺寸（比如 macOS 的 \`sips -g pixelWidth -g pixelHeight "<路径>"\`，
-或任何你能调用的图像信息工具），把读出来的整数直接填进去，\`aspect_exact = width / height\`。
-这条不需要模型判断，只是不要用眼睛估"看起来像 3:4"——量出来的数字和估的数字经常对不上。
+${exactDimensionsNote}。这条不需要你判断，只是不要用眼睛估"看起来像 3:4"——
+量出来的数字和估的数字经常对不上，也不要自己再跑一遍 shell 工具，脚本已经量过了。
 \`composition.aspect_ratio\` 那个"3:4"式的类别字段仍然保留，两个字段都要填。
 
 **content.on_image_text[] 的新字段 —— 排版不只是文字内容**

@@ -6,8 +6,11 @@ import UniformTypeIdentifiers
 /// 这是 A1 的核心交互，也是整个 App 存在的理由——比"打开窗口再拖进去"少两步。
 /// 必须走 AppKit：SwiftUI 的 MenuBarExtra 不暴露底层 NSStatusItem，注册不了拖放类型。
 ///
-/// 图标同时挂一个菜单：菜单栏应用没有 Dock 图标、也不显示主菜单栏，
-/// **这个菜单是用户唯一能找到设置和退出的地方**。没有它就只能杀进程。
+/// 点击行为按使用频率分：左键直接开窗（十次里有九次要的就是这个，少一次弹菜单选项的绕行），
+/// 右键（或按住 control 点）才弹菜单。
+///
+/// 菜单不能省：菜单栏应用没有 Dock 图标、也不显示主菜单栏，
+/// **它是用户唯一能找到设置和退出的地方**。没有它就只能杀进程。
 ///
 /// 更进一步的"拖动时自动弹出接收框"（Yoink 那种）需要全局监听拖拽会话开始，
 /// 留到后续里程碑。现在是标准做法：图标常驻，拖上去即接收。
@@ -46,7 +49,8 @@ final class StatusItemController: NSObject {
             dropView.frame = button.bounds
             dropView.autoresizingMask = [.width, .height]
             dropView.onDrop = { [weak self] urls in self?.onDrop?(urls) }
-            dropView.onClick = { [weak self] in self?.popUpMenu() }
+            dropView.onPrimaryClick = { [weak self] in self?.onOpenWindow?() }
+            dropView.onSecondaryClick = { [weak self] in self?.popUpMenu() }
             button.addSubview(dropView)
         }
 
@@ -145,7 +149,8 @@ extension StatusItemController: NSMenuDelegate {
 
 private final class StatusDropView: NSView {
     var onDrop: (([URL]) -> Void)?
-    var onClick: (() -> Void)?
+    var onPrimaryClick: (() -> Void)?
+    var onSecondaryClick: (() -> Void)?
     private var isHighlighted = false {
         didSet { needsDisplay = true }
     }
@@ -167,16 +172,21 @@ private final class StatusDropView: NSView {
     }
 
     // 这层盖在状态栏按钮上面，鼠标事件先落到它这里，按钮自己收不到点击。
-    // 所以由它把点击报上去，让 controller 自己弹菜单。
+    // 所以由它把点击报上去，让 controller 决定是开窗还是弹菜单。
     //
     // 不能用 hitTest 返回 nil 放行点击——AppKit 找拖放目标时也走 hitTest，
     // 那样会把拖放一起关掉。
     override func mouseDown(with event: NSEvent) {
-        onClick?()
+        // control + 左键在 macOS 上等同右键，习惯这么用的人不该拿到不一样的结果
+        if event.modifierFlags.contains(.control) {
+            onSecondaryClick?()
+        } else {
+            onPrimaryClick?()
+        }
     }
 
     override func rightMouseDown(with event: NSEvent) {
-        onClick?()
+        onSecondaryClick?()
     }
 
     override func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {

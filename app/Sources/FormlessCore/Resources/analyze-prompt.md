@@ -151,9 +151,8 @@ v0.2 仍然没有 motion 块（已知缺口，等实测工具再补，不是靠�
 - `source.path` 填上面那个图片路径
 - `source.analyzed_at` 填当前时间，ISO 8601 带时区（如 `2026-07-29T01:20:00+08:00`）
 - `source.analyzer` 填你自己的标识（如 `claude-code` / `codex`）
-- `source.width` / `source.height`：真实像素尺寸，**用工具量，不要目测**（比如 macOS 的
-  `sips -g pixelWidth -g pixelHeight "<路径>"`，或任何你能调用的图像信息工具）
-- `source.aspect_exact`：`width / height` 的精确值
+- `source.width` / `source.height` / `source.aspect_exact`：{{EXACT_DIMENSIONS}}
+  **不要自己用工具量、不要目测**——上面这行已经是量好的精确值，直接抄进 JSON。
 
 ### 10. v0.2 新增字段
 

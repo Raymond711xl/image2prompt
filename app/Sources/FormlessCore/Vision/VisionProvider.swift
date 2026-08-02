@@ -28,7 +28,12 @@ public protocol VisionProvider: Sendable {
 public enum VisionError: Error, LocalizedError, Sendable {
     case unreadableImage(URL)
     case missingCredentials(provider: String)
+    /// 真正的网络层失败（HTTP API provider 用）。本地 agent 走子进程，不是网络请求，
+    /// 别再复用这个 case——超时/非零退出/找不到可执行文件都不是"网络请求失败"，
+    /// 报错要说真话，不然用户永远猜不出实际原因。
     case transport(String)
+    /// 本地 agent 子进程失败：超时、非零退出、启动失败、找不到可执行文件。
+    case agentFailed(String)
     case malformedResponse(String)
     case cancelled
 
@@ -40,6 +45,8 @@ public enum VisionError: Error, LocalizedError, Sendable {
             return "\(provider) 没有配置 API key，请到设置里填写"
         case .transport(let detail):
             return "网络请求失败：\(detail)"
+        case .agentFailed(let detail):
+            return "本地 agent 出错：\(detail)"
         case .malformedResponse(let detail):
             return "模型返回的内容不是合法 StyleSpec：\(detail)"
         case .cancelled:
